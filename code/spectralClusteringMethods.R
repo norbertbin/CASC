@@ -42,11 +42,26 @@ getCascClusters = function(adjacencyMat, covariates, hTuningParam,
     
     cascSingVec = getCascSvd(getGraphMatrix(adjacencyMat, method), covariates,
         hTuningParam, nBlocks)$singVec
-
+    
     return( kmeans(cascSingVec, nstart = randStarts)$cluster )
     
 }
 
+# ---------------------------------------------------------------------
+# returns cluster memberships for CASC based clustering takes graphMat
+# ---------------------------------------------------------------------
+getCascResults = function(graphMat, covariates, hTuningParam,
+    nBlocks) {
+
+    randStarts = 10 #number of random starts for kmeans
+    
+    cascSingVec = getCascSvd(graphMat, covariates, hTuningParam, nBlocks)$singVec
+    kmeansResults = kmeans(cascSingVec, nstart = randStarts)
+    
+    return( list(cluster = kmeansResults$cluster,
+                 wcss = kmeansResutls$tot.withinss) )
+    
+}
 
 # ---------------------------------------------------------------------
 # returns cluster memberships for SC based graph clustering
