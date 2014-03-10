@@ -29,7 +29,7 @@ getCcaClusters = function(adjacencyMat, covariates, nBlocks,
     ccaSingVec = getCcaSvd(getGraphMatrix(adjacencyMat, method), covariates,
         nBlocks)$singVec
 
-    return( kmeans(ccaSingVec, nstart = randStarts)$cluster )
+    return( kmeans(ccaSingVec, nBlocks, nstart = randStarts)$cluster )
 }
 
 # ---------------------------------------------------------------------
@@ -43,7 +43,7 @@ getCascClusters = function(adjacencyMat, covariates, hTuningParam,
     cascSingVec = getCascSvd(getGraphMatrix(adjacencyMat, method), covariates,
         hTuningParam, nBlocks)$singVec
     
-    return( kmeans(cascSingVec, nstart = randStarts)$cluster )
+    return( kmeans(cascSingVec, nBlocks, nstart = randStarts)$cluster )
     
 }
 
@@ -56,7 +56,7 @@ getCascResults = function(graphMat, covariates, hTuningParam,
     randStarts = 10 #number of random starts for kmeans
     
     cascSingVec = getCascSvd(graphMat, covariates, hTuningParam, nBlocks)$singVec
-    kmeansResults = kmeans(cascSingVec, nstart = randStarts)
+    kmeansResults = kmeans(cascSingVec, nBlocks, nstart = randStarts)
     
     return( list(cluster = kmeansResults$cluster,
                  wcss = kmeansResutls$tot.withinss) )
@@ -74,7 +74,7 @@ getGraphScClusters = function(adjacencyMat, nBlocks,
     scSingVec = getScSvd(getGraphMatrix(adjacencyMat, method),
         nBlocks)$singVec
 
-    return( kmeans(scSingVec, nstart = randStarts)$cluster )
+    return( kmeans(scSingVec, nBlocks, nstart = randStarts)$cluster )
 }
 
 # ---------------------------------------------------------------------
@@ -86,7 +86,7 @@ getCovScClusters = function(covariates, nBlocks) {
 
     scSingVec = getScSvd(covariates, nBlocks)$singVec
 
-    return( kmeans(scSingVec, nstart = randStarts)$cluster )
+    return( kmeans(scSingVec, nBlocks, nstart = randStarts)$cluster )
 }
 
 
