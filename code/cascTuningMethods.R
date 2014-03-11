@@ -1,3 +1,6 @@
+#TODO: implement discontinuity condition
+
+# ---------------------------------------------------------------------
 # functions to run CASC with parameter tuning
 # ---------------------------------------------------------------------
 
@@ -37,6 +40,42 @@ getCascAutoClusters = function(adjacency, covariates, nBlocks,
 }
 
 # ---------------------------------------------------------------------
+# returns CASC optimal h tuning parameter SVD
+# ---------------------------------------------------------------------
+getCascAutoSvd = function(graphMat, covariates, nBlocks,
+    nPoints = 100) {
+
+    rangehTuning = getTuningRange(graphMat, covariates, nBlocks)
+
+    hTuningSeq = seq(rangehTuning$hmin, rangehTuning$hmax,
+        length.out = nPoints)
+    wcssVec = rep(0, nPoints)
+    gapVec = rep(0, nPoints)
+    
+    for(i in 1:nPoints) {
+        cascResults = getCascResults(graphMat, covariates, hTuningSeq[i],
+            nBlocks)
+        wcssVec[i] = cascResults$wcss
+        gapVec[i] = cascResults$singGap
+    }
+
+    # restrict possible values to those past any phase transition
+    if(min(gapVec) < .9*min(gapVec[1], gapVec[nPoints])) {
+        starth = match(min(gapVec), gapVec) + 1
+        print("transition found")
+    }
+    else {
+        starth = 1
+    }
+        
+    minWcssIndex = match(min(wcssVec[starth:nPoints]),
+        wcssVec[starth:nPoints]) + starth - 1
+print(paste("hTuning = ", hTuningSeq[minWcssIndex]))
+    return( getCascSvd(graphMat, covariates, hTuningSeq[minWcssIndex],
+                       nBlocks) )
+}
+
+# ---------------------------------------------------------------------
 # gets a good range for the tuning parameter in CASC
 # ---------------------------------------------------------------------
 getTuningRange = function(graphMatrix, covariates, nBlocks) {
@@ -49,13 +88,14 @@ getTuningRange = function(graphMatrix, covariates, nBlocks) {
         internalDim = 20
     }
     
-    singValGraph = irlba(graphMatrix, nu = n, nv = 0, m_b =
+    singValGraph = irlba(graphMatrix, nu = nBlocks + 1, nv = 0, m_b =
         internalDim)$d
-    maxSingValCov = svd(covariates, nu = 1)$d[1]
+    singValCov = svd(covariates, nu = nBlocks)$d
 
-    hmax = singValGraph[nBlocks]/maxSingValCov
+    hmax = singValGraph[1]/singValCov[nBlocks]^2
 
-    hmin = (singValGraph[nBlocks - 1] - singValGraph[nBlocks])/maxSingValCov
-    
+    hmin = (singValGraph[nBlocks] - singValGraph[nBlocks + 1])/singValCov[1]^2
+
+    print(paste("hmax = ", hmax, " hmin = ", hmin))
     return( list( hmax = hmax, hmin = hmin ) )
 }

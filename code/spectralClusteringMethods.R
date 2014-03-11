@@ -7,6 +7,7 @@
 # load any necessary libraries and scripts
 # ---------------------------------------------------------------------
 require(Matrix)
+require(irlba)
 source("irlbaMod.R")
 
 
@@ -55,11 +56,15 @@ getCascResults = function(graphMat, covariates, hTuningParam,
 
     randStarts = 10 #number of random starts for kmeans
     
-    cascSingVec = getCascSvd(graphMat, covariates, hTuningParam, nBlocks)$singVec
+    cascSvd = getCascSvd(graphMat, covariates, hTuningParam, nBlocks)
+    cascSingVec = cascSvd$singVec
+    
     kmeansResults = kmeans(cascSingVec, nBlocks, nstart = randStarts)
     
     return( list(cluster = kmeansResults$cluster,
-                 wcss = kmeansResutls$tot.withinss) )
+                 wcss = kmeansResults$tot.withinss,
+                 singGap = cascSvd$singVal[nBlocks] -
+                 cascSvd$singVal[nBlocks + 1]) )
     
 }
 
@@ -71,7 +76,7 @@ getGraphScClusters = function(adjacencyMat, nBlocks,
 
     randStarts = 10 #number of random starts for kmeans
 
-    scSingVec = getScSvd(getGraphMatrix(adjacencyMat, method),
+    scSingVec = getGraphScSvd(getGraphMatrix(adjacencyMat, method),
         nBlocks)$singVec
 
     return( kmeans(scSingVec, nBlocks, nstart = randStarts)$cluster )
@@ -84,7 +89,7 @@ getCovScClusters = function(covariates, nBlocks) {
 
     randStarts = 10 #number of random starts for kmeans
 
-    scSingVec = getScSvd(covariates, nBlocks)$singVec
+    scSingVec = getCovScSvd(covariates, nBlocks)$singVec
 
     return( kmeans(scSingVec, nBlocks, nstart = randStarts)$cluster )
 }
@@ -134,16 +139,26 @@ getCascSvd = function(graphMat, covariates, hTuningParam, nBlocks) {
 }
 
 # ---------------------------------------------------------------------
-# returns left singular vectors and values for SC based clustering
+# returns left singular vectors and values for graph SC based clustering
 # ---------------------------------------------------------------------
-getScSvd = function(scMatrix, nBlocks) {
+getGraphScSvd = function(graphMat, nBlocks) {
 
-    singDecomp = svd(scMatrix, nu = nBlocks, nv = 0)
+    singDecomp = irlba(graphMat, nu = nBlocks, nv = 0)
 
     return( list(singVec = singDecomp$u[, 1:nBlocks],
                  singVal = singDecomp$d) ) 
 }
 
+# ---------------------------------------------------------------------
+# returns left singular vectors and values for covariate SC based clustering
+# ---------------------------------------------------------------------
+getCovScSvd = function(covMat, nBlocks) {
+
+    singDecomp = svd(covMat, nu = nBlocks, nv = 0)
+
+    return( list(singVec = singDecomp$u[, 1:nBlocks],
+                 singVal = singDecomp$d) ) 
+}
 
 # ---------------------------------------------------------------------
 # returns the graph matrix corresponding to the given method
@@ -153,11 +168,12 @@ getGraphMatrix = function(adjacencyMat, method) {
     if(method == "regLaplacian") {
         rSums = rowSums(adjacencyMat)
         tau = mean(rSums)
-        normMat = Diagonal(1/sqrt(rowSums(adjacencyMat + tau)))
+        normMat = Diagonal(length(rSums), 1/sqrt(rSums + tau))
         graphMat = normMat %*% adjacencyMat %*% normMat
     }
     else if(method == "laplacian") {
-        normMat = Diagonal(1/sqrt(rowSums(adjacencyMat)))
+        rSums = rowSums(adjacencyMat)
+        normMat = Diagonal(length(rSums), 1/sqrt(rSums))
         graphMat = normMat %*% adjacencyMat %*% normMat
     }
     else if(method == "adjacency"){
