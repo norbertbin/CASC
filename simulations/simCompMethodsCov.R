@@ -30,7 +30,7 @@ covProb1 = .5
 p = .03 
 q = .016
 deltaCovProbSeq = seq(0, .4, by = .05)
-nIter = 10
+nIter = 1
 method = "regLaplacian"
 
 nPoints = length(deltaCovProbSeq)
@@ -87,6 +87,7 @@ write.table(misClustData, file = paste(outDir, "simCompMethodsCovProb.txt"))
 
 #create figure
 pdf(paste(outDir, "simCompMethodsCovProb.pdf"), width = 7, height = 7)
+print(
     xyplot(misClustRate ~ deltaCovProb, group = group, type = "b", pch = 1:4,
            data = misClustData, ylab = "Average Mis-clustering Rate",
            xlab = "Difference in Covariate Probabilities", lwd = 2, key = list(
@@ -96,6 +97,7 @@ pdf(paste(outDir, "simCompMethodsCovProb.pdf"), width = 7, height = 7)
                                points = list(pch = 1:4, 
 			col = trellis.par.get()$superpose.symbol$col[1:4]),
                                         corner = c(.95, .95)) )
+    )
 dev.off()
 
 # ---------------------------------------------------------------------
@@ -111,7 +113,7 @@ covProb2 = .1
 p = .03 
 q = .016
 nCovSeq = c(2, 4, 6, 8, 10)
-nIter = 10
+nIter = 1
 method = "regLaplacian"
 
 nPoints = length(nCovSeq)
@@ -167,6 +169,7 @@ write.table(misClustData, file = paste(outDir, "simCompMethodsNumCov.txt"))
 
 #create figure
 pdf(paste(outDir, "simCompMethodsNumCov.pdf"), width = 7, height = 7)
+print(
     xyplot(misClustRate ~ nCov, group = group, type = "b", pch = 1:4,
            data = misClustData, ylab = "Average Mis-clustering Rate",
            xlab = "Number of Covariates", lwd = 2, key = list(
@@ -176,4 +179,5 @@ pdf(paste(outDir, "simCompMethodsNumCov.pdf"), width = 7, height = 7)
                                points = list(pch = 1:4, 
 			col = trellis.par.get()$superpose.symbol$col[1:4]),
                                         corner = c(.95, .95)) )
+    )
 dev.off()

@@ -34,10 +34,12 @@ simAdjMatCovMat = function(blockMat, covProbMat, nMembers) {
                     upTriMatTemp = upTriMat
                     upTriMatTemp[, -(startBlock[i]:(startBlock[i+1] - 1))] = F
                     upTriMatTemp[-(startBlock[i]:(startBlock[i+1] - 1)),] = F
-                    adjacency[upTriMatTemp] = rbinom(sum(upTriMatTemp), 1, blockMat[i,i])
+                    adjacency[upTriMatTemp] = rbinom(sum(upTriMatTemp), 1,
+                                 blockMat[i,i])
                 }
 		else {
-                    adjacency[startBlock[i]:(startBlock[i+1] - 1), startBlock[j]:(startBlock[j+1] - 1)] = 
+                    adjacency[startBlock[i]:(startBlock[i+1] - 1),
+                              startBlock[j]:(startBlock[j+1] - 1)] = 
 			rbinom(nMembers[i] * nMembers[j] , 1, blockMat[i,j])
 		}
 	}
@@ -50,7 +52,8 @@ simAdjMatCovMat = function(blockMat, covProbMat, nMembers) {
     }
 
     #copy upper tri to lower tri for aa
-    return( list(adjacency = adjacency + t(adjacency), covariates = covariates) )
+    return( list(adjacency = adjacency + t(adjacency),
+                 covariates = covariates) )
 }
 
 # ---------------------------------------------------------------------
@@ -71,10 +74,12 @@ simAdjMat = function(blockMat, nMembers) {
                     upTriMatTemp = upTriMat
                     upTriMatTemp[, -(startBlock[i]:(startBlock[i+1] - 1))] = F
                     upTriMatTemp[-(startBlock[i]:(startBlock[i+1] - 1)),] = F
-                    adjacency[upTriMatTemp] = rbinom(sum(upTriMatTemp), 1, blockMat[i,i])
+                    adjacency[upTriMatTemp] = rbinom(sum(upTriMatTemp), 1,
+                                 blockMat[i,i])
                 }
 		else {
-                    adjacency[startBlock[i]:(startBlock[i+1] - 1), startBlock[j]:(startBlock[j+1] - 1)] = 
+                    adjacency[startBlock[i]:(startBlock[i+1] - 1),
+                              startBlock[j]:(startBlock[j+1] - 1)] = 
 			rbinom(nMembers[i] * nMembers[j] , 1, blockMat[i,j])
 		}
 	}
@@ -89,7 +94,8 @@ simAdjMat = function(blockMat, nMembers) {
 # function to simulate adjacency matrix SBM and Bernoulli covariates with
 # a proportion of incorrect group assignments
 # ---------------------------------------------------------------------
-simAdjMatCovMatPropInc = function(blockMat, covProbMat, nMembers, propIncorrect) {
+simAdjMatCovMatPropInc = function(blockMat, covProbMat, nMembers,
+    propIncorrect) {
 
     nBlocks = dim(blockMat)[1]
     nNodes = sum(nMembers)
@@ -106,10 +112,12 @@ simAdjMatCovMatPropInc = function(blockMat, covProbMat, nMembers, propIncorrect)
                     upTriMatTemp = upTriMat
                     upTriMatTemp[, -(startBlock[i]:(startBlock[i+1] - 1))] = F
                     upTriMatTemp[-(startBlock[i]:(startBlock[i+1] - 1)),] = F
-                    adjacency[upTriMatTemp] = rbinom(sum(upTriMatTemp), 1, blockMat[i,i])
+                    adjacency[upTriMatTemp] = rbinom(sum(upTriMatTemp), 1,
+                                 blockMat[i,i])
                 }
 		else {
-                    adjacency[startBlock[i]:(startBlock[i+1] - 1), startBlock[j]:(startBlock[j+1] - 1)] = 
+                    adjacency[startBlock[i]:(startBlock[i+1] - 1),
+                              startBlock[j]:(startBlock[j+1] - 1)] = 
 			rbinom(nMembers[i] * nMembers[j] , 1, blockMat[i,j])
 		}
 	}
@@ -126,7 +134,7 @@ simAdjMatCovMatPropInc = function(blockMat, covProbMat, nMembers, propIncorrect)
     nFlips = round( sum(nMembers) * propIncorrect / length(nMembers) )
     covariatesTemp = covariates[startBlock[1]:(startBlock[1] + nFlips), ]
 
-    for(i in 1:(nBocks - 1)) {
+    for(i in 1:(nBlocks - 1)) {
         covariates[startBlock[i]:(startBlock[i] + nFlips), ] =
             covariates[startBlock[i+1]:(startBlock[i+1] + nFlips), ]
     }
@@ -134,7 +142,8 @@ simAdjMatCovMatPropInc = function(blockMat, covProbMat, nMembers, propIncorrect)
     covariates[startBlock[i+1]:(startBlock[i+1] + nFlips), ] = covariatesTemp
     
     #copy upper tri to lower tri for aa
-    return( list(adjacency = adjacency + t(adjacency), covariates = covariates) )
+    return( list(adjacency = adjacency + t(adjacency),
+                 covariates = covariates) )
 }
 
 # ---------------------------------------------------------------------
@@ -146,7 +155,8 @@ simAdjMatCovMatPropInc = function(blockMat, covProbMat, nMembers, propIncorrect)
 # ---------------------------------------------------------------------
 genBlockMatPPM = function(p, q, nBlocks) {
     
-    return( matrix( c(rep( c(p, rep(q, nBlocks)), nBlocks - 1 ), p), nrow = nBlocks )  )
+    return( matrix( c(rep( c(p, rep(q, nBlocks)), nBlocks - 1 ), p),
+                   nrow = nBlocks )  )
 }
 
 # ---------------------------------------------------------------------

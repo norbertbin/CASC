@@ -30,11 +30,11 @@ covProb1 = .5
 covProb2 = .1
 p = .03 
 q = .016
-propIncorrectSeq = seq(.5, 0, by = .1)
+propIncorrectSeq = seq(.5, 0, by = -.1)
 nIter = 1
 method = "regLaplacian"
 
-nPoints = length(deltaCovProbSeq)
+nPoints = length(propIncorrectSeq)
 misClustRateCasc = rep(0, nPoints)
 misClustRateCca = rep(0, nPoints)
 misClustRateL = rep(0, nPoints)
@@ -48,7 +48,8 @@ for(iter in 1:nIter) {
         covProbMat = matrix(c(covProb1, covProb2, covProb2, covProb1)
             , nrow = nCovs)
         blockProbMat = genBlockMatPPM(p, q, nBlocks)
-        simData = simAdjMatCovMat(blockProbMat, covProbMat, nMembers)
+        simData = simAdjMatCovMatPropInc(blockProbMat, covProbMat,
+            nMembers, propIncorrect)
 
         #convert adjacency matrix to sparse matrix
         graphMat = getGraphMatrix( Matrix(simData$adjacency, sparse = T),
@@ -78,7 +79,7 @@ misClustRateL = misClustRateL/nIter
 misClustRateX = misClustRateX/nIter
 
 #create data frame with results
-misClustData = data.frame(propIncorrect = rep(propIncorrectSeq, 4),
+misClustData = data.frame(propIncorrect = rep(1 - propIncorrectSeq, 4),
     misClustRate =
     c(misClustRateCasc, misClustRateCca, misClustRateL, misClustRateX),
     group = rep(1:4, each = nPoints))
@@ -88,13 +89,16 @@ write.table(misClustData, file = paste(outDir, "simDiffGroupMember.txt"))
 
 #create figure
 pdf(paste(outDir, "simDiffGroupMember.pdf"), width = 7, height = 7)
+print(
     xyplot(misClustRate ~ propIncorrect, group = group, type = "b", pch = 1:4,
            data = misClustData, ylab = "Average Mis-clustering Rate",
-           xlab = "Difference in Covariate Probabilities", lwd = 2, key = list(
+           xlab = "Proportion of Correct Group Memberships", lwd = 2,
+           key = list(
                                text = list(c("CASC","CCA","SC-L","SC-X")),
                                lines = list(col = 
 			trellis.par.get()$superpose.symbol$col[1:4]),
                                points = list(pch = 1:4, 
 			col = trellis.par.get()$superpose.symbol$col[1:4]),
                                         corner = c(.95, .95)) )
+    )
 dev.off()

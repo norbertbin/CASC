@@ -60,7 +60,8 @@ getCascAutoSvd = function(graphMat, covariates, nBlocks,
     }
 
     # restrict possible values to those past any phase transition
-    if(min(gapVec) < .9*min(gapVec[1], gapVec[nPoints])) {
+    if(min(gapVec) < .9*min(gapVec[1], gapVec[nPoints]) &
+       min(gapVec) < .02) {
         starth = match(min(gapVec), gapVec) + 1
         print("transition found")
     }
