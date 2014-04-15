@@ -82,7 +82,7 @@ for(i in 2:(nLayers-1)) {
               'y', colSeq, outFileName)
 
     outFileName = paste(figDir, 'cascXLayer_', i, '.png', sep='')
-    plotLayer(cascCluster[xLayer == 1], nodeData[xLayer == i,],
+    plotLayer(cascCluster[xLayer == i], nodeData[xLayer == i,],
               'x', colSeq, outFileName)
 
     #spectral clustering results
