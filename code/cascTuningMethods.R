@@ -1,5 +1,3 @@
-#TODO: implement discontinuity condition
-
 # ---------------------------------------------------------------------
 # functions to run CASC with parameter tuning
 # ---------------------------------------------------------------------
