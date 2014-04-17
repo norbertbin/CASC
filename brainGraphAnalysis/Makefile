@@ -7,6 +7,7 @@ nBlocks = 100
 filePre = NKI-TRT_0021001
 rawDataDir = ../../../../Data/brainGraphs/rawData/
 procDataDir = ../../../../Data/brainGraphs/procData/
+atlasFile = ../../../../Data/brainGraphs/rawData/desikan/desikan_atlas_remap.nii
 
 #run python script to preprocess data
 convertNpyToTxt: convertNpyToTxt.py
@@ -24,3 +25,8 @@ args = $(procDataDir) $(filePre)
 clusterPlots: clusterPlots.R ../code/helperFunctions.R \
 		../code/helperFunctions.R
 	R CMD BATCH '--args $(args)' clusterPlots.R
+
+#run script to compare clusters with brain atlas
+args = $(atlasFile) $(rawDataDir) $(procDataDir) $(filePre)
+estAtlasBlocks: estAtlasBlocks.R 
+	R CMD BATCH '--args $(args)' estAtlasBlocks.R
