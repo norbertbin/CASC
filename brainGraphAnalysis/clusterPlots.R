@@ -1,8 +1,16 @@
 # ---------------------------------------------------------------------
 # load packages and source files
 # ---------------------------------------------------------------------
-require(colorspace)
-require(lattice)
+if (!require(colorspace)) {
+    install.packages('colorspace', dependencies = T)
+    require(colorspace)
+}
+
+if (!require(lattice)) {
+    install.packages('lattice', dependencies = T)
+    require(lattice)
+}
+
 source("../code/readWriteMatrix.R")
 source("../code/helperFunctions.R")
 

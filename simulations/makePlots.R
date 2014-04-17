@@ -5,7 +5,11 @@
 # ---------------------------------------------------------------------
 # load required scripts and packages
 # ---------------------------------------------------------------------
-require(lattice)
+if (!require(lattice)) {
+    install.packages('lattice', dependencies = T)
+    require(lattice)
+}
+
 
 outDir = "figs/"
 

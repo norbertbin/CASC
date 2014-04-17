@@ -14,7 +14,10 @@ source("cascTuningMethods.R")
 source("extEvalMethods.R")
 setwd(initialDir)
 
-require(lattice)
+if (!require(lattice)) {
+    install.packages('lattice', dependencies = T)
+    require(lattice)
+}
 
 outDir = "Figs/"
 

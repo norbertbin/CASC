@@ -1,12 +1,30 @@
 # ---------------------------------------------------------------------
 # load packages and source files
 # ---------------------------------------------------------------------
-require(Matrix)
-require(R.matlab)
-require(irlba)
-require(foreach)
-require(doMC)
-require(biganalytics)
+if (!require(Matrix)) {
+    install.packages('Matrix', dependencies = T)
+    require(Matrix)
+}
+if (!require(R.matlab)) {
+    install.packages('R.matlab', dependencies = T)
+    require(R.matlab)
+}
+if (!require(irlba)) {
+    install.packages('irlba', dependencies = T)
+    require(irlba)
+}
+if (!require(foreach)) {
+    install.packages('foreach', dependencies = T)
+    require(foreach)
+}
+if (!require(doMC)) {
+    install.packages('doMC', dependencies = T)
+    require(doMC)
+}
+if (!require(biganalytics)) {
+    install.packages('biganalytics', dependencies = T)
+    require(biganalytics)
+}
 
 cwd = getwd()
 setwd("../code/")

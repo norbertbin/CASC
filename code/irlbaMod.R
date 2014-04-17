@@ -1,7 +1,11 @@
 # modified version of the irlba function where A is a list instead of
 # a matrix
 # ---------------------------------------------------------------------
-library(irlba)
+
+if (!require(irlba)) {
+    install.packages('irlba', dependencies = T)
+    require(irlba)
+}
 
 irlbaMod <-
 function (A, nu=5, nv=5, adjust=3, aug=c("ritz","harm"), sigma=c("ls","ss"), 

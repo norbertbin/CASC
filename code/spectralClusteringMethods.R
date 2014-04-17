@@ -6,8 +6,16 @@
 # ---------------------------------------------------------------------
 # load any necessary libraries and scripts
 # ---------------------------------------------------------------------
-require(Matrix)
-require(irlba)
+if (!require(Matrix)) {
+    install.packages('Matrix', dependencies = T)
+    require(Matrix)
+}
+
+if (!require(irlba)) {
+    install.packages('irlba', dependencies = T)
+    require(irlba)
+}
+
 source("irlbaMod.R")
 
 # ---------------------------------------------------------------------

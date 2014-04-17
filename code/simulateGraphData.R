@@ -8,7 +8,11 @@
 # ---------------------------------------------------------------------
 # load any necessary libraries and scripts
 # ---------------------------------------------------------------------
-require(Matrix)
+if (!require(Matrix)) {
+    install.packages('Matrix', dependencies = T)
+    require(Matrix)
+}
+
 
 # ---------------------------------------------------------------------
 # MAIN FUNCTIONS
