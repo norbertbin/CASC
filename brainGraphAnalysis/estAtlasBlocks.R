@@ -28,6 +28,7 @@ if (!require(Matrix)) {
 }
 
 source('../code/helperFunctions.R')
+source('../code/readWriteMatrix.R')
 
 # ---------------------------------------------------------------------
 # load atlas and other data
@@ -100,8 +101,28 @@ idRemove = c( which(is.na(atlasCluster)), which(atlasCluster %in%
 bMat = estBlockMat(fiberGraph[-idRemove, -idRemove], atlasCluster[-idRemove])
 
 # save block matrix in cache
-write.table(bMat, paste(outDir, filePre, '_estimatedB.txt')
+saveMatrixList(paste(outDir, filePre, '_estimatedB'), list(bMat))
 
 # plot estimate of block matrix
 plotB(bMat, paste(figDir, filePre, '_estimatedB.pdf'))
 
+# ---------------------------------------------------------------------
+# estimate covariate means and sd
+# ---------------------------------------------------------------------
+retainedClusters = unique(atlasCluster[-idRemove])
+clusterMeans = matrix(0, ncol = 3, nrow = length(retainedClusters))
+clusterSd = matrix(0, ncol = 3, nrow = length(retainedClusters))
+
+# change na's to 0 to avoid errors
+atlasCluster[is.na(atlasCluster)] = 0
+
+for(i in retainedClusters) {
+    clusterMeans[which(retainedClusters == i),] =
+        colMeans(coorMat[atlasCluster == i, ])
+    clusterSd[which(retainedClusters == i),] =
+        colSd(coorMat[atlasCluster == i, ])
+}
+
+# save matrix            
+saveMatrixList(paste(outDir, filePre, '_covParamEst'),
+               list(clusterMeans, clusterSd))
