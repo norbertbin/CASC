@@ -11,7 +11,6 @@ if (!require(reshape2)) {
     require(reshape2)
 }
 
-require(mclust)
 if (!require(mclust)) {
     install.packages('mclust', dependencies = T)
     require(mclust)

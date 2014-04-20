@@ -95,6 +95,56 @@ simAdjMat = function(blockMat, nMembers) {
 }
 
 # ---------------------------------------------------------------------
+# function to simulate sparse adjacency matrix SBM
+# ---------------------------------------------------------------------
+simSparseAdjMat = function(blockMat, nMembers) {
+    nBlocks = dim(blockMat)[1]
+    nNodes = sum(nMembers)
+    adjacency = Matrix(0, nrow = nNodes, ncol = nNodes)
+    startBlock = cumsum(c(0, nMembers)) + 1
+
+    # fill the aa and xx matrices block by block
+    for(i in 1:nBlocks) {
+	for(j in 1:i) {
+		if(i == j) {
+                    adjacency[startBlock[i]:(startBlock[i+1] - 1),
+                              startBlock[i]:(startBlock[i+1] - 1)
+                              ] = triu(Matrix(rbinom(nMembers[i]*nMembers[i],
+                                 1, blockMat[i,i]), nrow = nMembers[i]))    
+                }
+		else {
+                    adjacency[startBlock[i]:(startBlock[i+1] - 1),
+                              startBlock[j]:(startBlock[j+1] - 1)] = 
+			rbinom(nMembers[i] * nMembers[j] , 1, blockMat[i,j])
+		}
+	}
+    }
+
+    # copy upper tri to lower tri for aa
+    return( adjacency + t(adjacency) )   
+}
+
+# ---------------------------------------------------------------------
+# function to simulate normal covariates
+# ---------------------------------------------------------------------
+simCoordMat = function(blockMean, blockSd, nMembers) {
+
+    nCov = dim(blockMean)[2]
+    nBlocks = length(nMembers)
+    startBlock = cumsum(c(0, nMembers)) + 1
+    
+    covariates = matrix(0, ncol = nCov, nrow = sum(nMembers))
+    for(i in 1:nBlocks) {
+        for(j in 1:nCov) {
+            covariates[startBlock[i]:(startBlock[i+1] - 1),j] =
+                rnorm(nMembers[i], blockMean[i,j], blockSd[i,j]) 
+        }
+    }
+
+    return(covariates)
+}
+
+# ---------------------------------------------------------------------
 # function to simulate adjacency matrix SBM and Bernoulli covariates with
 # a proportion of incorrect group assignments
 # ---------------------------------------------------------------------
