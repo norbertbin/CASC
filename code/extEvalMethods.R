@@ -52,6 +52,52 @@ misClustRateEmp = function(singVec, nMembers) {
 }
 
 # ---------------------------------------------------------------------
+# function to calculate the empirical proportion of misclustered nodes
+# given the cluster membership
+# ---------------------------------------------------------------------
+misClustRateClust = function(clusters, nMembers) {
+
+  nNodes = sum(nMembers)
+  nBlocks = length(nMembers)
+  nMisClustNodes = 0
+  uniqueClusters = unique(clusters)
+  clusterCounts = matrix(rep(0, nBlocks*nBlocks),
+      nrow = nBlocks)
+  clusterLabels = rep(0, nBlocks)
+  
+  #get label counts for each cluster
+  for(i in 1:nBlocks) {
+    
+    clustStart = sum(nMembers[1:i]) - sum(nMembers[i]) + 1
+    clustEnd = sum(nMembers[1:i])
+    
+    for(j in uniqueClusters) {
+      clusterCounts[j,i] = sum(j == clusters[clustStart:clustEnd]) 
+    }    
+  }
+  
+  #determine cluster label based on counts
+  clusterCountsTemp = clusterCounts
+  for(i in 1:nBlocks) {
+    
+    maxCoor = t(which(clusterCountsTemp ==
+        max(clusterCountsTemp), arr.ind = T))
+    clusterLabels[maxCoor[2]] = maxCoor[1]
+    clusterCountsTemp[maxCoor[1], ] = rep(-1, nBlocks)
+    clusterCountsTemp[, maxCoor[2]] = rep(-1, nBlocks)
+    
+  }
+  
+  for(i in 1:nBlocks) {
+    nMisClustNodes = nMisClustNodes + sum(clusterCounts[-clusterLabels[i],i])
+  }  
+  
+  
+  return( nMisClustNodes/nNodes )
+}
+
+
+# ---------------------------------------------------------------------
 # function to calcuale the proportion of misclustered nodes based on
 # singular vectors with condition that if 95% are in one cluster all
 # are misclustered
