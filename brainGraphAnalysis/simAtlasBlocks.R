@@ -33,9 +33,6 @@ filePre = comArgs[1]
 nCores = as.numeric(comArgs[2])
 nH = as.numeric(comArgs[3])
 
-# set number of cores
-registerDoMC(nCores)
-
 outDir = 'cache/'
 
 # block matrix file
@@ -76,6 +73,9 @@ for(i in 1:length(nNodesSeq)) {
                 max(nMembers))] + nNodes - sum(nMembers)#hack to keep count
     
     for(j in 1:nIter) {
+        # set number of cores
+        registerDoMC(nCores)
+
         adjMat = simSparseAdjMat(bMat, nMembers)
         coordMat = simCoordMat(clusterMeans, clusterSd, nMembers)
 
@@ -140,7 +140,7 @@ for(i in 1:length(nNodesSeq)) {
             cascKM = bigkmeans(cascSvd, nBlocks, iter.max = 100, nstart = 10)
 
         }
-
+        
         for(h in hSet) {
             wcssVec[match(h, hSet)] = mean(kmList[[match(h, hSet)]]$withinss)
             clusterMat[match(h, hSet),] = kmList[[match(h, hSet)]]$cluster
@@ -155,6 +155,12 @@ for(i in 1:length(nNodesSeq)) {
         misRateCasc[i, j] = misClustRateClust(cascCluster, nMembers)
         misRateCca[i, j] = misClustRateClust(ccaCluster, nMembers)
         misRateScx[i, j] = misClustRateClust(scxCluster, nMembers)
+
+        #track progress
+        write.table(c(misRateSc[i,j], misRateCasc[i,j], misRateCca[i,j],
+                      misRateScx[i,j]), append = T, row.names = F,
+                    col.names = F, paste(outDir, 'simAtlasBlocks.txt'))
+
     }
 }
 
