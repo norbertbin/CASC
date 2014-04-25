@@ -84,7 +84,7 @@ for(i in 1:length(nNodesSeq)) {
             rnorm(nNodes, 0, .25), rnorm(nNodes, 0, .25))
             
         # demean the columns
-        coordMat = coordMat - vector(length = nNodes) %*%
+        coordMat = coordMat - rep(1, nNodes) %*%
             t(colMeans(coordMat)) 
 
         # rescale

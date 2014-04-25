@@ -90,14 +90,12 @@ fiberGraph = fiberGraph + t(fiberGraph)
 if(!file.exists(procCoordFile)) {
 # create covariate matrix with centered xyz and rescaled to 1 
 # add white noise with sigma = 1/4
-    coorData$V2 = coorData$V2 + rnorm(nNodes, 0, 1/4)
-    coorData$V3 = coorData$V3 + rnorm(nNodes, 0, 1/4)
-    coorData$V4 = coorData$V4 + rnorm(nNodes, 0, 1/4)
-    maxCoor = max(c(coorData$V2, coorData$V3, coorData$V4))
-    covData = matrix(c(coorData$V2 - mean(coorData$V2),
-        coorData$V3 - mean(coorData$V3),
-        coorData$V4 - mean(coorData$V4)), ncol = 3)/maxCoor
-
+    covData = cbind(coorData$V2 + rnorm(nNodes, 0, .25),
+        coorData$V3 + rnorm(nNodes, 0, .25), coorData$V4 + rnorm(1, nNodes))
+    covData = covData - rep(1, nNodes) %*%
+        t(colMeans(covData))
+    covData = covData/max(covData)
+    
 # store coordinate data with added noise
     write.table(covData, procCoordFile)
 } else {
