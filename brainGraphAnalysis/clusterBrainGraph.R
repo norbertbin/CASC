@@ -25,6 +25,10 @@ if (!require(biganalytics)) {
     install.packages('biganalytics', dependencies = T)
     require(biganalytics)
 }
+if (!require(rARPACK)) {
+    install.packages('rARPACK', dependencies = T)
+    require(rARPACK)
+}
 
 cwd = getwd()
 setwd("../code/")
@@ -113,34 +117,34 @@ fiberGraph = Diagonal(nNodes, 1/sqrt(rSums + tau)) %*% fiberGraph %*%
 if(!file.exists(paste(outDir, filePre, "_LSVD.bin", sep="")) |
    !file.exists(paste(outDir, filePre, "_covSVD.bin", sep=""))) {
     # compute svd's of L and X
-    lapSvd = irlba(fiberGraph, nu = nBlocks + 1, m_b = 2*nBlocks)
+    lapSvd = eigs(fiberGraph, nu = nBlocks + 1, m_b = 2*nBlocks)
     covSvd = svd(covData)
 
     # save these to outDir
     saveMatrixList(paste(outDir, filePre, "_LSVD", sep=""), list(
-        matrix(lapSvd$d), lapSvd$u[,1:nBlocks]))
+        matrix(lapSvd$values), lapSvd$vectors[,1:nBlocks]))
     saveMatrixList(paste(outDir, filePre, "_covSVD", sep=""), list(
         matrix(covSvd$d), covSvd$u))
 
 } else {
     # load svd from outDir
     lapSvd = list()
-    lapSvd$d = loadMatrix(paste(outDir, filePre, "_LSVD", sep=""), 1)
-    lapSvd$u = loadMatrix(paste(outDir, filePre, "_LSVD", sep=""), 2)
+    lapSvd$values = loadMatrix(paste(outDir, filePre, "_LSVD", sep=""), 1)
+    lapSvd$vectors = loadMatrix(paste(outDir, filePre, "_LSVD", sep=""), 2)
     covSvd = list()
     covSvd$d = loadMatrix(paste(outDir, filePre, "_covSVD", sep=""), 1)
     covSvd$u = loadMatrix(paste(outDir, filePre, "_covSVD", sep=""), 2)
 }
 
 # compute upper and lower bounds for h
-hMin = (lapSvd$d[nBlocks] - lapSvd$d[nBlocks+1])/covSvd$d[1]^2
-hMax = lapSvd$d[1]/covSvd$d[min(nBlocks, nCov)]
+hMin = (lapSvd$values[nBlocks] - lapSvd$values[nBlocks+1])/covSvd$d[1]^2
+hMax = lapSvd$values[1]/covSvd$d[min(nBlocks, nCov)]
 
 # ---------------------------------------------------------------------
 # for comparison compute RSC, CCA and spectral clustering on X
 # ---------------------------------------------------------------------
 # do regularized spectral clustering for comparison
-scSv = lapSvd$u/sqrt(rowSums(lapSvd$u^2))
+scSv = lapSvd$vectors/sqrt(rowSums(lapSvd$vectors^2))
 scKM = bigkmeans(scSv, nBlocks, iter.max = 200, nstart = 10)
 scCluster = scKM$cluster
 saveMatrixList(paste(outDir, filePre, "_SC", sep=""), list(
