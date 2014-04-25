@@ -81,8 +81,8 @@ estBlockMat = function(adjMat, nodeBlocks) {
 plotB = function(bMat, outFileName) {
 
     pdf(outFileName, width = 10, height = 10)
-    heatmap.2(bMat, Colv = "Rowv", dendrogram = "none", key = F,
-              trace = "none",
+    heatmap.2(bMat, Colv = "Rowv", dendrogram = "none", key = T,
+              trace = "none", symm = T,
               col = colorRampPalette(c("white", "black"))(256),
               breaks = getVectorBins(as.vector(bMat), 257),
               lwid = c(.09, .99), lhei = c(.01, .99),

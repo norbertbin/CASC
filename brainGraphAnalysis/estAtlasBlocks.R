@@ -100,10 +100,10 @@ idRemove = c( which(is.na(atlasCluster)), which(atlasCluster %in%
 bMat = estBlockMat(fiberGraph[-idRemove, -idRemove], atlasCluster[-idRemove])
 
 # save block matrix in cache
-saveMatrixList(paste(outDir, filePre, '_estimatedB'), list(bMat))
+saveMatrixList(paste(outDir, filePre, '_estimatedB', sep=''), list(bMat))
 
 # plot estimate of block matrix
-plotB(bMat, paste(figDir, filePre, '_estimatedB.pdf'))
+plotB(bMat, paste(figDir, filePre, '_estimatedB.pdf', sep=''))
 
 # ---------------------------------------------------------------------
 # estimate covariate means and sd
@@ -124,6 +124,6 @@ for(i in retainedClusters) {
 
 
 # save matrix and vector of block node counts           
-saveMatrixList(paste(outDir, filePre, '_covParamEst'),
+saveMatrixList(paste(outDir, filePre, '_covParamEst', sep=''),
                list(clusterMeans, clusterSd,
                     matrix(table(atlasCluster[-idRemove]))))

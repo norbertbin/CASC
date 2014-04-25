@@ -36,12 +36,12 @@ nH = as.numeric(comArgs[3])
 outDir = 'cache/'
 
 # block matrix file
-blockMatFile = paste(outDir, filePre, '_estimatedB')
+blockMatFile = paste(outDir, filePre, '_estimatedB', sep='')
 
 bMat = loadMatrix(blockMatFile, 1)
 
 # covariate parameters file
-covParamFile = paste(outDir, filePre, '_covParamEst')
+covParamFile = paste(outDir, filePre, '_covParamEst', sep='')
 
 clusterMeans = loadMatrix(covParamFile, 1)
 clusterSd = loadMatrix(covParamFile, 2)
@@ -159,7 +159,8 @@ for(i in 1:length(nNodesSeq)) {
         #track progress
         write.table(c(misRateSc[i,j], misRateCasc[i,j], misRateCca[i,j],
                       misRateScx[i,j]), append = T, row.names = F,
-                    col.names = F, paste(outDir, 'simAtlasBlocks.txt'))
+                    col.names = F, paste(outDir, 'simAtlasBlocks.txt',
+                        sep=''))
 
     }
 }
@@ -170,11 +171,11 @@ misRates = data.frame(n = rep(nNodesSeq, 4), misClustRate =
     rowSums(misRateSc)/nIter, rowSums(misRateScx)/nIter),
     group = rep(1:4, each = nPoints))
 
-write.table(misRates, paste(outDir, 'simAtlasBlocks.txt')) 
+write.table(misRates, paste(outDir, 'simAtlasBlocks.txt', sep='')) 
 
 # plot misclustering results
 legLab = c("CASC", "CCA", "RSC", "SC on X")
-pdf(paste(outDir, "simAtlasBlocks.pdf"), width = 7, height = 7)
+pdf(paste(outDir, "simAtlasBlocks.pdf", sep=''), width = 7, height = 7)
 print(
     xyplot(misClustRate ~ n, group = group, type = "b", pch = 1:4,
            cex = 1.2, data = misRates, ylab = "Average mis-clustering rate",
