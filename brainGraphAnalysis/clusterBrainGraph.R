@@ -180,14 +180,22 @@ wcssVec = rep(0, nH)
 clusterMat = matrix(rep(0, nH*nNodes), nrow = nH)
 
 kmList = foreach(h = hSet) %dopar% {
-    cascSvd = getCascSvd(fiberGraph, covData, h, nBlocks)$singVec
+    cascSvd = getCascSvd(fiberGraph, covData, h, nBlocks)
 
+    eigengap = cascSvd$d[nBlocks] - cascSvd$d[nBlocks+1]
+    
+    cascSvd = cascSvd$singVec
+
+    #save eigengap and h for reference
+    write.table(c(h, eigengap), append = T, row.names = F,
+                col.names = F, paste(outDir, filePre,
+                    '_h_eigenGap.txt', sep=''))
+    
     #project eigenvectors onto sphere
     cascSvd = cascSvd/sqrt(rowSums(cascSvd^2))
 
     registerDoMC(1) #dont reparallelize
     cascKM = bigkmeans(cascSvd, nBlocks, iter.max = 100, nstart = 10)
-
 }
 
 for(h in hSet) {
@@ -199,6 +207,11 @@ for(h in hSet) {
 # get clusters with min wcss and save to file
 # ---------------------------------------------------------------------
 iMin = match(min(wcssVec), wcssVec)
+
+# save final h value
+write.table(c(hSet[iMin]), append = T, row.names = F,
+            col.names = F, paste(outDir, filePre, '_h_eigenGap.txt', sep=''))
+
 cascCluster = clusterMat[iMin,]
 saveMatrixList(paste(outDir, filePre, "_CASC", sep=""), list(
     matrix(cascCluster) ))
