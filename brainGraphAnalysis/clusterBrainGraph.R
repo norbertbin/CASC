@@ -25,10 +25,6 @@ if (!require(biganalytics)) {
     install.packages('biganalytics', dependencies = T)
     require(biganalytics)
 }
-if (!require(rARPACK)) {
-    install.packages('rARPACK', dependencies = T)
-    require(rARPACK)
-}
 
 cwd = getwd()
 setwd("../code/")
@@ -90,12 +86,14 @@ fiberGraph = fiberGraph + t(fiberGraph)
 if(!file.exists(procCoordFile)) {
 # create covariate matrix with centered xyz and rescaled to 1 
 # add white noise with sigma = 1/4
-    covData = cbind(coorData$V2 + rnorm(nNodes, 0, .25),
-        coorData$V3 + rnorm(nNodes, 0, .25), coorData$V4 + rnorm(1, nNodes))
-    covData = covData - rep(1, nNodes) %*%
-        t(colMeans(covData))
-    covData = covData/max(covData)
-    
+    coorData$V2 = coorData$V2 + rnorm(nNodes, 0, 1/4)
+    coorData$V3 = coorData$V3 + rnorm(nNodes, 0, 1/4)
+    coorData$V4 = coorData$V4 + rnorm(nNodes, 0, 1/4)
+    maxCoor = max(c(coorData$V2, coorData$V3, coorData$V4))
+    covData = matrix(c(coorData$V2 - mean(coorData$V2),
+        coorData$V3 - mean(coorData$V3),
+        coorData$V4 - mean(coorData$V4)), ncol = 3)/maxCoor
+
 # store coordinate data with added noise
     write.table(covData, procCoordFile)
 } else {
@@ -115,51 +113,63 @@ fiberGraph = Diagonal(nNodes, 1/sqrt(rSums + tau)) %*% fiberGraph %*%
 if(!file.exists(paste(outDir, filePre, "_LSVD.bin", sep="")) |
    !file.exists(paste(outDir, filePre, "_covSVD.bin", sep=""))) {
     # compute svd's of L and X
-    lapSvd = eigs(fiberGraph, nu = nBlocks + 1, m_b = 2*nBlocks)
+    lapSvd = irlba(fiberGraph, nu = nBlocks + 1, m_b = 2*nBlocks)
     covSvd = svd(covData)
 
     # save these to outDir
     saveMatrixList(paste(outDir, filePre, "_LSVD", sep=""), list(
-        matrix(lapSvd$values), lapSvd$vectors[,1:nBlocks]))
+        matrix(lapSvd$d), lapSvd$u[,1:nBlocks]))
     saveMatrixList(paste(outDir, filePre, "_covSVD", sep=""), list(
         matrix(covSvd$d), covSvd$u))
 
 } else {
     # load svd from outDir
     lapSvd = list()
-    lapSvd$values = loadMatrix(paste(outDir, filePre, "_LSVD", sep=""), 1)
-    lapSvd$vectors = loadMatrix(paste(outDir, filePre, "_LSVD", sep=""), 2)
+    lapSvd$d = loadMatrix(paste(outDir, filePre, "_LSVD", sep=""), 1)
+    lapSvd$u = loadMatrix(paste(outDir, filePre, "_LSVD", sep=""), 2)
     covSvd = list()
     covSvd$d = loadMatrix(paste(outDir, filePre, "_covSVD", sep=""), 1)
     covSvd$u = loadMatrix(paste(outDir, filePre, "_covSVD", sep=""), 2)
 }
 
 # compute upper and lower bounds for h
-hMin = (lapSvd$values[nBlocks] - lapSvd$values[nBlocks+1])/covSvd$d[1]^2
-hMax = lapSvd$values[1]/covSvd$d[min(nBlocks, nCov)]
+hMin = (lapSvd$d[nBlocks] - lapSvd$d[nBlocks+1])/covSvd$d[1]^2
+hMax = lapSvd$d[1]/covSvd$d[min(nBlocks, nCov)]
 
 # ---------------------------------------------------------------------
 # for comparison compute RSC, CCA and spectral clustering on X
 # ---------------------------------------------------------------------
 # do regularized spectral clustering for comparison
-scSv = lapSvd$vectors/sqrt(rowSums(lapSvd$vectors^2))
-scKM = bigkmeans(scSv, nBlocks, iter.max = 200, nstart = 10)
-scCluster = scKM$cluster
-saveMatrixList(paste(outDir, filePre, "_SC", sep=""), list(
+if(!file.exists(paste(outDir, filePre, "_SC.bin", sep=""))) {
+   scSv = lapSvd$u/sqrt(rowSums(lapSvd$u^2))
+   scKM = bigkmeans(scSv, nBlocks, iter.max = 200, nstart = 10)
+   scCluster = scKM$cluster
+   saveMatrixList(paste(outDir, filePre, "_SC", sep=""), list(
     matrix(scCluster) ))
+} else {
+   scCluster = as.vector(loadMatrix(paste(outDir, filePre, "_SC", sep=""), 1))
+}
 
 #do CCA
-ccaSvd = svd(fiberGraph%*%covData)
-ccaKM = bigkmeans(ccaSvd$u, nBlocks, iter.max = 200, nstart = 10)
-ccaCluster = ccaKM$cluster
-saveMatrixList(paste(outDir, filePre, "_CCA", sep=""),
+if(!file.exists(paste(outDir, filePre, "_CCA.bin", sep=""))) {
+   ccaSvd = svd(fiberGraph%*%covData)
+   ccaKM = bigkmeans(ccaSvd$u, nBlocks, iter.max = 200, nstart = 10)
+   ccaCluster = ccaKM$cluster
+   saveMatrixList(paste(outDir, filePre, "_CCA", sep=""),
                list(matrix(ccaCluster)))
+} else {
+   ccaCluster = as.vector(loadMatrix(paste(outDir, filePre, "_CCA", sep=""), 1))
+}
 
 #do SC on X
-scxKM = bigkmeans(covSvd$u, nBlocks, iter.max = 200, nstart = 10)
-scxCluster = scxKM$cluster
-saveMatrixList(paste(outDir, filePre, "_SCX", sep=""),
+if(!file.exists(paste(outDir, filePre, "_SCX.bin", sep=""))) {
+   scxKM = bigkmeans(covSvd$u, nBlocks, iter.max = 200, nstart = 10)
+   scxCluster = scxKM$cluster
+   saveMatrixList(paste(outDir, filePre, "_SCX", sep=""),
            list(matrix(scxCluster)))
+} else {
+   scxCluster = as.vector(loadMatrix(paste(outDir, filePre, "_SCX", sep=""), 1))
+}
 
 # ---------------------------------------------------------------------
 # compute SVD and clusters for set of tuning parameters of CASC
