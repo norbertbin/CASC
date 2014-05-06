@@ -122,7 +122,6 @@ for(i in retainedClusters) {
         colSd(coorMat[atlasCluster == i, ])
 }
 
-
 # save matrix and vector of block node counts           
 saveMatrixList(paste(outDir, filePre, '_covParamEst', sep=''),
                list(clusterMeans, clusterSd,

@@ -40,7 +40,7 @@ blockMatFile = paste(outDir, filePre, '_estimatedB', sep='')
 
 bMat = loadMatrix(blockMatFile, 1)
 
-# covariate parameters file
+# covariate parameters file with node counts
 covParamFile = paste(outDir, filePre, '_covParamEst', sep='')
 
 clusterMeans = loadMatrix(covParamFile, 1)
@@ -53,26 +53,17 @@ nodeCounts = loadMatrix(covParamFile, 3)
 nIter = 20
 nBlocks = dim(bMat)[1]
 nCov = dim(clusterMeans)[2]
-nNodesSeq = c(3*10^4, 6*10^4, 9*10^4)
 
-#adjust block matrix to ensure all nodes connected
-#also increase signal in covariates by reducing clusterSd
-bMat = bMat*(sum(nodeCounts)/nNodesSeq[1]) /
-    (log(sum(nodeCounts))/log(nNodesSeq[1]))
-clusterSd = clusterSd/3
+misRateSc = vector(length = nIter)
+misRateCasc = vector(length = nIter)
+misRateCca = vector(length = nIter)
+misRateScx = vector(length = nIter)
 
-misRateSc = matrix(0, nrow = length(nNodesSeq), ncol = nIter)
-misRateCasc = misRateSc
-misRateCca = misRateSc
-misRateScx = misRateSc
 
-for(i in 1:length(nNodesSeq)) {
-    nNodes = nNodesSeq[i]
-    nMembers = round(nNodes * nodeCounts/sum(nodeCounts))
-    nMembers[which(nMembers == max(nMembers))] = nMembers[which(nMembers ==
-                max(nMembers))] + nNodes - sum(nMembers)#hack to keep count
-    
-    for(j in 1:nIter) {
+nNodes = sum(nodeCounts)
+nMembers = nodeCounts
+
+for(i in 1:nIter) {
         # set number of cores
         registerDoMC(nCores)
 
@@ -151,40 +142,24 @@ for(i in 1:length(nNodesSeq)) {
         cascCluster = clusterMat[iMin,]
 
         # compute and store the misclustering rate for each method
-        misRateSc[i, j] = misClustRateClust(scCluster, nMembers)
-        misRateCasc[i, j] = misClustRateClust(cascCluster, nMembers)
-        misRateCca[i, j] = misClustRateClust(ccaCluster, nMembers)
-        misRateScx[i, j] = misClustRateClust(scxCluster, nMembers)
+        misRateSc[i] = misClustRateClust(scCluster, nMembers)
+        misRateCasc[i] = misClustRateClust(cascCluster, nMembers)
+        misRateCca[i] = misClustRateClust(ccaCluster, nMembers)
+        misRateScx[i] = misClustRateClust(scxCluster, nMembers)
 
         #track progress
-        write.table(c(misRateSc[i,j], misRateCasc[i,j], misRateCca[i,j],
-                      misRateScx[i,j]), append = T, row.names = F,
-                    col.names = F, paste(outDir, 'simAtlasBlocks.txt',
+        write.table(c(misRateSc[i], misRateCasc[i], misRateCca[i],
+                      misRateScx[i]), append = T, row.names = F,
+                    col.names = F, paste(outDir, 'logSimAtlasBlocks.txt',
                         sep=''))
 
-    }
 }
 
 # save misclustering results
-misRates = data.frame(n = rep(nNodesSeq, 4), misClustRate =
-    c(rowSums(misRateCasc)/nIter, rowSums(misRateCca)/nIter,
-    rowSums(misRateSc)/nIter, rowSums(misRateScx)/nIter),
-    group = rep(1:4, each = nPoints))
+misRates = data.frame(casc = rowSums(misRateCasc)/nIter,
+    cca = rowSums(misRateCca)/nIter,
+    sc = rowSums(misRateSc)/nIter,
+    scx = rowSums(misRateScx)/nIter)
 
 write.table(misRates, paste(outDir, 'simAtlasBlocks.txt', sep='')) 
 
-# plot misclustering results
-legLab = c("CASC", "CCA", "RSC", "SC on X")
-pdf(paste(outDir, "simAtlasBlocks.pdf", sep=''), width = 7, height = 7)
-print(
-    xyplot(misClustRate ~ n, group = group, type = "b", pch = 1:4,
-           cex = 1.2, data = misRates, ylab = "Average mis-clustering rate",
-           xlab = "Number of nodes (N)", lwd = 2, key = list(
-                               text = list(legLab),
-                               lines = list(col = 
-			trellis.par.get()$superpose.symbol$col[1:4], lwd = 2),
-                               points = list(pch = 1:4, cex = 1.2,
-			col = trellis.par.get()$superpose.symbol$col[1:4]),
-                                        corner = c(.95, .95)) )
-    )
-dev.off()
