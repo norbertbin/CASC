@@ -23,6 +23,15 @@ source("irlbaMod.R")
 # ---------------------------------------------------------------------
 
 # ---------------------------------------------------------------------
+# returns cluster memberships for gen. inv. laplacian based clustering
+# ---------------------------------------------------------------------
+getGilClusters = function(adjacencyMat, covariates, nBlocks,
+    method = 'regLaplacina') {
+
+    
+}
+
+# ---------------------------------------------------------------------
 # returns cluster memberships for CCA based clustering
 # ---------------------------------------------------------------------
 getCcaClusters = function(adjacencyMat, covariates, nBlocks,
@@ -30,14 +39,10 @@ getCcaClusters = function(adjacencyMat, covariates, nBlocks,
 
     randStarts = 10 #number of random starts for kmeans
     
-    if(dim(covariates)[2] < nBlocks) {
-        stop("Number of covariates is less than the number of blocks.")
-    }
-
-    ccaSingVec = getCcaSvd(getGraphMatrix(adjacencyMat, method), covariates,
+    gilSingVec = getGilSvd(getGraphMatrix(adjacencyMat, method), covariates,
         nBlocks)$singVec
 
-    return( kmeans(ccaSingVec, nBlocks, nstart = randStarts)$cluster )
+    return( kmeans(gilSingVec, nBlocks, nstart = randStarts)$cluster )
 }
 
 # ---------------------------------------------------------------------
@@ -107,6 +112,38 @@ getCovScClusters = function(covariates, nBlocks) {
 # ---------------------------------------------------------------------
 
 # ---------------------------------------------------------------------
+# returns left singular vectors and values for GIL based clustering
+# ---------------------------------------------------------------------
+getGilSvd = function(graphMat, covariates, nBlocks) {
+
+    #insure irlba internal representation is large enough
+    if(nBlocks > 10) {
+        internalDim = 2 * nBlocks
+    }
+    else {
+        internalDim = 20
+    }
+
+    #approximate the generalized inverse of L using top eigenvectors
+    svdL = irlba(graphMat, nu = 2*nBlocks, m_b = internalDim)
+    graphMatP = svdL$u %*% Diagonal(1/svdL$d) %*% svdL$u^T
+    
+    #define a custom matrix vector multiply function
+    matrixMulti = function(aList, aVector, transposeBool) {
+        return( as.vector(aList$graphMat %*%
+                          (aList$covariates %*% aList$covariates^T
+                           * aVector)) )
+    } 
+
+    singDecomp = irlbaMod(list(graphMat = graphMatP, covariates = covariates,
+        hTuningParam = hTuningParam), nu = nBlocks + 1, nv = 0,
+        m_b = internalDim, matmul = matrixMulti) 
+
+    return( list(singVec = singDecomp$u[, 1:nBlocks],
+                 singVal = singDecomp$d) ) 
+}
+
+# ---------------------------------------------------------------------
 # returns left singular vectors and values for CCA based clustering
 # ---------------------------------------------------------------------
 getCcaSvd = function(graphMat, covariates, nBlocks) {
@@ -150,7 +187,15 @@ getCascSvd = function(graphMat, covariates, hTuningParam, nBlocks) {
 # ---------------------------------------------------------------------
 getGraphScSvd = function(graphMat, nBlocks) {
 
-    singDecomp = irlba(graphMat, nu = nBlocks, nv = 0)
+    #insure irlba internal representation is large enough
+    if(nBlocks > 10) {
+        internalDim = 2 * nBlocks
+    }
+    else {
+        internalDim = 20
+    }
+    
+    singDecomp = irlba(graphMat, nu = nBlocks, nv = 0, m_b = internalDim)
 
     return( list(singVec = singDecomp$u[, 1:nBlocks],
                  singVal = singDecomp$d) ) 
@@ -176,19 +221,19 @@ getGraphMatrix = function(adjacencyMat, method) {
         rSums = rowSums(adjacencyMat)
         tau = mean(rSums)
         normMat = Diagonal(length(rSums), 1/sqrt(rSums + tau))
-        graphMat = normMat %*% adjacencyMat %*% normMat
+        return(normMat %*% adjacencyMat %*% normMat)
     }
     else if(method == "laplacian") {
         rSums = rowSums(adjacencyMat)
         normMat = Diagonal(length(rSums), 1/sqrt(rSums))
-        graphMat = normMat %*% adjacencyMat %*% normMat
+        return(normMat %*% adjacencyMat %*% normMat)
     }
     else if(method == "adjacency"){
-        graphMat = adjacencyMat
+        return(adjacencyMat)
     }
     else {
         stop("Method given not valid.")
     }
 
-    return(graphMat)
+    return(-1)
 }

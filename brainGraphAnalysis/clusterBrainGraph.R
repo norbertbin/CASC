@@ -146,9 +146,7 @@ if(!file.exists(paste(outDir, filePre, "_SC.bin", sep=""))) {
    scCluster = scKM$cluster
    saveMatrixList(paste(outDir, filePre, "_SC", sep=""), list(
     matrix(scCluster) ))
-} else {
-   scCluster = as.vector(loadMatrix(paste(outDir, filePre, "_SC", sep=""), 1))
-}
+} 
 
 #do CCA
 if(!file.exists(paste(outDir, filePre, "_CCA.bin", sep=""))) {
@@ -157,9 +155,7 @@ if(!file.exists(paste(outDir, filePre, "_CCA.bin", sep=""))) {
    ccaCluster = ccaKM$cluster
    saveMatrixList(paste(outDir, filePre, "_CCA", sep=""),
                list(matrix(ccaCluster)))
-} else {
-   ccaCluster = as.vector(loadMatrix(paste(outDir, filePre, "_CCA", sep=""), 1))
-}
+} 
 
 #do SC on X
 if(!file.exists(paste(outDir, filePre, "_SCX.bin", sep=""))) {
@@ -167,9 +163,15 @@ if(!file.exists(paste(outDir, filePre, "_SCX.bin", sep=""))) {
    scxCluster = scxKM$cluster
    saveMatrixList(paste(outDir, filePre, "_SCX", sep=""),
            list(matrix(scxCluster)))
-} else {
-   scxCluster = as.vector(loadMatrix(paste(outDir, filePre, "_SCX", sep=""), 1))
-}
+} 
+
+# do memory clean up
+rm(ccaSvd)
+rm(covSvd)
+rm(lapSvd)
+rm(scSv)
+rm(coorData)
+gc()
 
 # ---------------------------------------------------------------------
 # compute SVD and clusters for set of tuning parameters of CASC
@@ -183,8 +185,6 @@ kmList = foreach(h = hSet) %dopar% {
     cascSvd = getCascSvd(fiberGraph, covData, h, nBlocks)
 
     eigengap = cascSvd$d[nBlocks] - cascSvd$d[nBlocks+1]
-    
-    cascSvd = cascSvd$singVec
 
     #save eigengap and h for reference
     write.table(c(h, eigengap), append = T, row.names = F,
@@ -192,10 +192,10 @@ kmList = foreach(h = hSet) %dopar% {
                     '_h_eigenGap.txt', sep=''))
     
     #project eigenvectors onto sphere
-    cascSvd = cascSvd/sqrt(rowSums(cascSvd^2))
+    cascSvd$singVec = cascSvd$singVec/sqrt(rowSums(cascSvd$singVec^2))
 
     registerDoMC(1) #dont reparallelize
-    cascKM = bigkmeans(cascSvd, nBlocks, iter.max = 100, nstart = 10)
+    cascKM = bigkmeans(cascSvd$singVec, nBlocks, iter.max = 100, nstart = 10)
 }
 
 for(h in hSet) {
