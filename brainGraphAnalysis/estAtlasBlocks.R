@@ -73,8 +73,8 @@ atlasMat = melt(atlasDat@.Data)
 atlasMat = atlasMat[atlasMat$value > 0,]
 
 # match atlas with data using location coordinates
-indexAM = atlasMat[,1] + atlasMat[,2]*10^3 + atlasMat[,3]*10^6
-indexCM = coorMat[,1] + coorMat[,2]*10^3 + coorMat[,3]*10^6
+indexAM = atlasMat %*% c(1, 10^3, 10^6)
+indexCM = coorMat %*% c(1, 10^3, 10^6)
 matchIndex = match(indexCM, indexAM)
 sum(is.na(matchIndex))
 
