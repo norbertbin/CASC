@@ -131,8 +131,8 @@ getGilSvd = function(graphMat, covariates, nBlocks) {
     #define a custom matrix vector multiply function
     matrixMulti = function(aList, aVector, transposeBool) {
         return( as.vector(aList$graphMat %*%
-                          (aList$covariates %*% aList$covariates^T
-                           * aVector)) )
+                          (aList$covariates %*% (aList$covariates^T
+                           %*% aVector))) )
     } 
 
     singDecomp = irlbaMod(list(graphMat = graphMatP, covariates = covariates,
