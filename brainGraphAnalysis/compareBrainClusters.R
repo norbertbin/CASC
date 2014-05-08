@@ -48,7 +48,9 @@ for(i in 1:nGraphs) {
 # load pairing information as vector with person id
 pairVec = rep(1:12, each = 2)
 
+# ---------------------------------------------------------------------
 # get ari matrix for rsc, cca, casc, scx
+# ---------------------------------------------------------------------
 scAri = rep(0, nGraphs/2)
 scxAri = rep(0, nGraphs/2)
 ccaAri = rep(0, nGraphs/2)
@@ -72,18 +74,20 @@ for(i in unique(pairVec)) {
     # match nodes
     matchInd = match(coorInd1, coorInd2)
 
-    scAri[i] = ariAlign(scCluster[[pairInd[1]]], scCluster[[pairInd[2]]],
+    scAri[i] = ariAligned(scCluster[[pairInd[1]]], scCluster[[pairInd[2]]],
         matchInd)
-    scxAri[i] = ariAlign(scxCluster[[pairInd[1]]], scxCluster[[pairInd[2]]],
-        matchInd)
-    ccaAri[i] = ariAlign(ccaCluster[[pairInd[1]]], ccaCluster[[pairInd[2]]],
-        matchInd)
-    cascAri[i] = ariAlign(cascCluster[[pairInd[1]]],
+    scxAri[i] = ariAligned(scxCluster[[pairInd[1]]],
+              scxCluster[[pairInd[2]]], matchInd)
+    ccaAri[i] = ariAligned(ccaCluster[[pairInd[1]]],
+              ccaCluster[[pairInd[2]]], matchInd)
+    cascAri[i] = ariAligned(cascCluster[[pairInd[1]]],
                cascCluster[[pairInd[2]]], matchInd)
 }
 
+# ---------------------------------------------------------------------
 # helper function to compute ari with aligned nodes
-ariAlign = function(clusters1, clusters2, matchInd) {
+# ---------------------------------------------------------------------
+ariAligned = function(clusters1, clusters2, matchInd) {
     return( adjustedRandIndex(clusters1[!is.na(matchInd)],
         na.omit(clusters2[matchInd])) )
 }
