@@ -57,4 +57,8 @@ clusterBrainGraphAll:
 
 #run R script to generate plots
 clusterPlotsAll:
-	$(foreach fPre, $(aFilePre), R CMD BATCH '--args $(procDataDir) $(fPre)' clusterPlots.R)	
+	$(foreach fPre, $(aFilePre), R CMD BATCH '--args $(procDataDir) $(fPre)' clusterPlots.R;)	
+
+#run R script to compare paired clusters
+compareBrainClusters:
+	R CMD BATCH '--args $(fileList) $(procDataDir)' compareBrainClusters.R
