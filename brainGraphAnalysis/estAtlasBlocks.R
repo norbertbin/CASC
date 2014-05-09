@@ -62,8 +62,8 @@ coorData = read.table(lccCovInputFile)
 # only keep the largest connected component
 fiberGraph = fiberGraph[coorData$V1 + 1, coorData$V1 + 1]
 
-#create coordinate matrix
-coorMat = as.matrix(coorData)[,2:4]
+#create coordinate matrix starting at 1 not 0
+coorMat = as.matrix(coorData)[,2:4] + 1
 
 # ---------------------------------------------------------------------
 # convert data tensor to coordinate label matrix
