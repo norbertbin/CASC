@@ -8,6 +8,7 @@
 
 # ---------------------------------------------------------------------
 # function to calculate the empirical proportion of misclustered nodes
+# nMembers must be in order as they appear in simulated data
 # ---------------------------------------------------------------------
 misClustRateEmp = function(singVec, nMembers) {
 

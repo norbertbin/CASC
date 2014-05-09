@@ -57,7 +57,7 @@ scCluster = loadMatrix(scInputFile, 1)
 
 #load graph coordinates
 coordInputFile = paste(procDataDir, filePre, '_big_lcc.txt', sep='')
-coorData = read.table(lccCovInputFile)
+coorData = read.table(coordInputFile)
 
 # only keep the largest connected component
 fiberGraph = fiberGraph[coorData$V1 + 1, coorData$V1 + 1]
@@ -73,13 +73,14 @@ atlasMat = melt(atlasDat@.Data)
 atlasMat = atlasMat[atlasMat$value > 0,]
 
 # match atlas with data using location coordinates
-indexAM = atlasMat %*% c(1, 10^3, 10^6)
+indexAM = cbind(atlasMat$Var1, atlasMat$Var2, atlasMat$Var3) %*%
+    c(1, 10^3, 10^6)
 indexCM = coorMat %*% c(1, 10^3, 10^6)
 matchIndex = match(indexCM, indexAM)
 sum(is.na(matchIndex))
 
 # atlas assignments for graph
-atlasCluster = atlasMat[matchIndex, 4]
+atlasCluster = atlasMat$value[matchIndex]
 
 # compute ari for atlas vs casc and sc
 adjustedRandIndex(atlasCluster, cascCluster)
