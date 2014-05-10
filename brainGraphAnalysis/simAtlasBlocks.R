@@ -148,8 +148,8 @@ for(i in 1:nIter) {
         misRateScx[i] = misClustRateClust(scxCluster, nMembers)
 
         #track progress
-        write.table(c(misRateSc[i], misRateCasc[i], misRateCca[i],
-                      misRateScx[i]), append = T, row.names = F,
+        write.table(t(c(misRateSc[i], misRateCasc[i], misRateCca[i],
+                      misRateScx[i])), append = T, row.names = F,
                     col.names = F, paste(outDir, 'logSimAtlasBlocks.txt',
                         sep=''))
 

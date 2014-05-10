@@ -187,7 +187,7 @@ kmList = foreach(h = hSet) %dopar% {
     eigengap = cascSvd$d[nBlocks] - cascSvd$d[nBlocks+1]
 
     #save eigengap and h for reference
-    write.table(c(h, eigengap), append = T, row.names = F,
+    write.table(t(c(h, eigengap)), append = T, row.names = F,
                 col.names = F, paste(outDir, filePre,
                     '_h_eigenGap.txt', sep=''))
     
