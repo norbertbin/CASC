@@ -1,5 +1,3 @@
-#TODO: implement sparse versions of these functions
-
 ###--------------------------------------------------------------------
 # functions to simulate graph data using SBM along with covariates
 ###--------------------------------------------------------------------
@@ -96,28 +94,34 @@ simAdjMat = function(blockMat, nMembers) {
 
 # ---------------------------------------------------------------------
 # function to simulate sparse adjacency matrix SBM
+# using binding instead of subsetting
 # ---------------------------------------------------------------------
 simSparseAdjMat = function(blockMat, nMembers) {
     nBlocks = dim(blockMat)[1]
     nNodes = sum(nMembers)
-    adjacency = Matrix(0, nrow = nNodes, ncol = nNodes)
     startBlock = cumsum(c(0, nMembers)) + 1
-
+    adjacency = NULL
+    
     # fill the aa and xx matrices block by block
-    for(i in 1:nBlocks) {
-	for(j in 1:i) {
+    for(j in 1:nBlocks) {
+        adjCol = NULL
+	for(i in nBlocks:1) {
 		if(i == j) {
-                    adjacency[startBlock[i]:(startBlock[i+1] - 1),
-                              startBlock[i]:(startBlock[i+1] - 1)
-                              ] = triu(Matrix(rbinom(nMembers[i]*nMembers[i],
-                                 1, blockMat[i,i]), nrow = nMembers[i]))    
+                    adjTemp = triu(simBernSparseMat(nMembers[i],
+                                 nMembers[i], blockMat[i,i]))    
                 }
-		else {
-                    adjacency[startBlock[i]:(startBlock[i+1] - 1),
-                              startBlock[j]:(startBlock[j+1] - 1)] = 
-			rbinom(nMembers[i] * nMembers[j] , 1, blockMat[i,j])
+		else if(i < j) {
+                    adjTemp = simBernSparseMat(nMembers[i], nMembers[j],
+                                         blockMat[i, j])
 		}
-	}
+                else {
+                    adjTemp = Matrix(0, nrow = nMembers[i],
+                        ncol = nMembers[j])
+                }
+                adjCol = rBind(adjTemp, adjCol)
+         }
+        
+        adjacency = cBind(adjCol, adjacency)        
     }
 
     # copy upper tri to lower tri for aa
@@ -230,4 +234,32 @@ genBlockMatSBM = function(pVec, q, nBlocks) {
   bVec[indx] = pVec[nBlocks]
   
   return( matrix(bVec, nrow = nBlocks) )
+}
+
+# ---------------------------------------------------------------------
+# function to generate sparse Bernoulli matrix
+# ---------------------------------------------------------------------
+simBernSparseMat = function(nRow, nCol, p) {
+
+    if(p == 0) {
+        return( Matrix(0, nrow = nRow, ncol = nCol) )
+    }
+
+    expNumOnes = nRow*nCol*p
+    sdNumOnes = sqrt(nRow*nCol*p*(1-p))
+
+    indOnes = rnbinom(expNumOnes + round(4*sdNumOnes), 1, p) + 1
+
+    indCumSum = cumsum(indOnes)
+    
+    # in the highly unlikely case of early termination
+    while (max(indCumSum) < nRow*nCol) {
+        indCumSum = c(indCumSum, max(indCumSum) +
+            rnbinom(1, 1, p) + 1)
+    }
+    
+    indCumSum = indCumSum[indCumSum <= nRow*nCol]
+
+    return( Matrix(sparseVector(1, indCumSum, nRow*nCol) ,
+                   nrow = nRow, ncol = nCol) )
 }

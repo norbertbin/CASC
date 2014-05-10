@@ -103,8 +103,8 @@ bMat = estBlockMat(fiberGraph[-idRemove, -idRemove], atlasCluster[-idRemove])
 # save block matrix in cache
 saveMatrixList(paste(outDir, filePre, '_estimatedB', sep=''), list(bMat))
 
-# plot estimate of block matrix
-plotB(bMat, paste(figDir, filePre, '_estimatedB.pdf', sep=''))
+# plot estimate of block matrix (gives margin error)
+# plotB(bMat, paste(figDir, filePre, '_estimatedB.pdf', sep=''))
 
 # ---------------------------------------------------------------------
 # estimate covariate means and sd
