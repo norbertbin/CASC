@@ -99,7 +99,6 @@ simAdjMat = function(blockMat, nMembers) {
 simSparseAdjMat = function(blockMat, nMembers) {
     nBlocks = dim(blockMat)[1]
     nNodes = sum(nMembers)
-    startBlock = cumsum(c(0, nMembers)) + 1
     adjacency = NULL
     
     # fill the aa and xx matrices block by block
