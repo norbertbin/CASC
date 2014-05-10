@@ -50,7 +50,7 @@ nodeCounts = loadMatrix(covParamFile, 3)
 # ---------------------------------------------------------------------
 # run simulations
 # ---------------------------------------------------------------------
-nIter = 20
+nIter = 5
 nBlocks = dim(bMat)[1]
 nCov = dim(clusterMeans)[2]
 
@@ -68,6 +68,12 @@ for(i in 1:nIter) {
         registerDoMC(nCores)
 
         adjMat = simSparseAdjMat(bMat, nMembers)
+
+        # ensure graph is connnected
+        while( min(rowSums(adjMat)) == 0) {
+            adjMat = simSparseAdjMat(bMat, nMembers)
+        }
+        
         coordMat = simCoordMat(clusterMeans, clusterSd, nMembers)
 
         # add normal noise
