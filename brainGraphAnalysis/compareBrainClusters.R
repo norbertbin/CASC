@@ -7,6 +7,14 @@ if (!require(mclust)) {
     install.packages('mclust', dependencies = T)
     require(mclust)
 }
+if (!require(foreach)) {
+    install.packages('foreach', dependencies = T)
+    require(foreach)
+}
+if (!require(doMC)) {
+    install.packages('doMC', dependencies = T)
+    require(doMC)
+}
 
 source('../code/readWriteMatrix.R')
 
@@ -24,6 +32,7 @@ ariAligned = function(clusters1, clusters2, matchInd) {
 comArgs = commandArgs(T)
 preListFile = comArgs[1]
 procDataDir = comArgs[2]
+nCores = as.numeric(comArgs[3])
 
 # define other directories
 outDir = "cache/"
@@ -31,6 +40,9 @@ figDir = "figs/"
 
 # read in file prefixes
 preVec = readLines(preListFile)
+
+# number of cores 
+registerDoMC(nCores)
 
 # ---------------------------------------------------------------------
 # load clusters
