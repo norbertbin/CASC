@@ -102,12 +102,12 @@ simSparseAdjMat = function(blockMat, nMembers) {
     adjacency = NULL
     
     # fill the aa and xx matrices block by block
-    for(j in 1:nBlocks) {
+    for(j in nBlocks:1) {
         adjCol = NULL
 	for(i in nBlocks:1) {
 		if(i == j) {
                     adjTemp = triu(simBernSparseMat(nMembers[i],
-                                 nMembers[i], blockMat[i,i]))    
+                                 nMembers[i], blockMat[i,i]), 1)    
                 }
 		else if(i < j) {
                     adjTemp = simBernSparseMat(nMembers[i], nMembers[j],
