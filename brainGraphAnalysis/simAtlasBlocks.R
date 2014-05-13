@@ -94,7 +94,7 @@ for(i in 1:nIter) {
             Diagonal(nNodes, 1/sqrt(rSums + tau))
         
         # compute svd's of L and X
-        lapSvd = eigs(adjMat, nBlocks + 1)
+        lapSvd = eigs(adjMat, nBlocks + 1, opts = list(maxitr = 10000))
         lapSvd$vectors = lapSvd$vectors[,1:nBlocks]
         covSvd = svd(coordMat)
 

@@ -11,6 +11,14 @@ if (!require(mclust)) {
 source('../code/readWriteMatrix.R')
 
 # ---------------------------------------------------------------------
+# helper function to compute ari with aligned nodes
+# ---------------------------------------------------------------------
+ariAligned = function(clusters1, clusters2, matchInd) {
+    return( adjustedRandIndex(clusters1[!is.na(matchInd)],
+        na.omit(clusters2[matchInd])) )
+}
+
+# ---------------------------------------------------------------------
 # load 
 # ---------------------------------------------------------------------
 comArgs = commandArgs(T)
@@ -45,49 +53,41 @@ for(i in 1:nGraphs) {
                  sep=""), 1))
 }
 
-# load pairing information as vector with person id
-pairVec = rep(1:12, each = 2)
-
 # ---------------------------------------------------------------------
 # get ari matrix for rsc, cca, casc, scx
 # ---------------------------------------------------------------------
-scAri = rep(0, nGraphs/2)
-scxAri = rep(0, nGraphs/2)
-ccaAri = rep(0, nGraphs/2)
-cascAri = rep(0, nGraphs/2)
+scAri = matrix(0, nrow = nGraphs, ncol = nGraphs)
+scxAri = matrix(0, nrow = nGraphs, ncol = nGraphs)
+ccaAri = matrix(0, nrow = nGraphs, ncol = nGraphs)
+cascAri = matrix(0, nrow = nGraphs, ncol = nGraphs)
 
-for(i in unique(pairVec)) {
+for(i in 1:(nGraphs-1)) {
+    for(j in (i+1):nGraphs) {
 
-    # get ith pair of graphs
-    pairInd = which(i == pairVec) 
+        # load node locations for matching
+        coordIF1 = paste(procDataDir, preVec[i], '_big_lcc.txt', sep='')
+        coordIF2 = paste(procDataDir, preVec[j], '_big_lcc.txt', sep='')
 
-    # load node locations for matching
-    coordIF1 = paste(procDataDir, preVec[pairInd[1]], '_big_lcc.txt', sep='')
-    coordIF2 = paste(procDataDir, preVec[pairInd[2]], '_big_lcc.txt', sep='')
+        coorMat1 = as.matrix(read.table(coordIF1))[,2:4]
+        coorMat2 = as.matrix(read.table(coordIF2))[,2:4]
 
-    coorMat1 = as.matrix(read.table(coordIF1))[,2:4]
-    coorMat2 = as.matrix(read.table(coordIF2))[,2:4]
-
-    coorInd1 = coorMat1 %*% c(1, 10^3, 10^6)
-    coorInd2 = coorMat2 %*% c(1, 10^3, 10^6)
+        coorInd1 = coorMat1 %*% c(1, 10^3, 10^6)
+        coorInd2 = coorMat2 %*% c(1, 10^3, 10^6)
     
-    # match nodes
-    matchInd = match(coorInd1, coorInd2)
+        # match nodes
+        matchInd = match(coorInd1, coorInd2)
 
-    scAri[i] = ariAligned(scCluster[[pairInd[1]]], scCluster[[pairInd[2]]],
-        matchInd)
-    scxAri[i] = ariAligned(scxCluster[[pairInd[1]]],
-              scxCluster[[pairInd[2]]], matchInd)
-    ccaAri[i] = ariAligned(ccaCluster[[pairInd[1]]],
-              ccaCluster[[pairInd[2]]], matchInd)
-    cascAri[i] = ariAligned(cascCluster[[pairInd[1]]],
-               cascCluster[[pairInd[2]]], matchInd)
+        scAri[i,j] = ariAligned(scCluster[[i]],
+                 scCluster[[j]], matchInd)
+        scxAri[i,j] = ariAligned(scxCluster[[i]],
+                 scxCluster[[j]], matchInd)
+        ccaAri[i,j] = ariAligned(ccaCluster[[i]],
+                 ccaCluster[[j]], matchInd)
+        cascAri[i,j] = ariAligned(cascCluster[[i]],
+                 cascCluster[[j]], matchInd)
+    }
 }
 
-# ---------------------------------------------------------------------
-# helper function to compute ari with aligned nodes
-# ---------------------------------------------------------------------
-ariAligned = function(clusters1, clusters2, matchInd) {
-    return( adjustedRandIndex(clusters1[!is.na(matchInd)],
-        na.omit(clusters2[matchInd])) )
-}
+# write ari matricies
+saveMatrixList(paste(outDir, "compareBrainClusters", sep=""),
+               list(cascAri, ccaAri, scAri, scxAri))
