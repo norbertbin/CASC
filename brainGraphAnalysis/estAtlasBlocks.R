@@ -91,7 +91,7 @@ adjustedRandIndex(atlasCluster, scCluster)
 # ---------------------------------------------------------------------
 # exclude very small clusters
 nodeCounts = tabulate(atlasCluster)
-smallClusters = which(nodeCounts < 200)
+smallClusters = which(nodeCounts < 500)
 
 # set na's to new cluster
 idRemove = c( which(is.na(atlasCluster)), which(atlasCluster %in%
