@@ -103,3 +103,14 @@ for(i in 1:(nGraphs-1)) {
 # write ari matricies
 saveMatrixList(paste(outDir, "compareBrainClusters", sep=""),
                list(cascAri, ccaAri, scAri, scxAri))
+
+# do hierarchical clustering using ari
+pdf(paste(figDir, "cascAriHier.pdf"), width = 10, heigh = 10)
+plot(hclust(as.dist(t(cascAri))), xlab = "", main = "Cluster Dendrogram Using
+ARI for CASC")
+dev.off()
+
+pdf(paste(figDir, "rscAriHier.pdf"), width = 10, heigh = 10)
+plot(hclust(as.dist(t(scAri))), xlab = "", main = "Cluster Dendrogram Using
+ARI for RSC")
+dev.off()
