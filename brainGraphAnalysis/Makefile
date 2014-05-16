@@ -55,6 +55,10 @@ convertNpyToTxtAll:
 clusterBrainGraphAll:
 	$(foreach fPre, $(aFilePre), R CMD BATCH '--args $(rawDataDir) $(procDataDir) $(fPre) $(nBlocks) $(nCores) $(nH)' clusterBrainGraph.R;)
 
+#run R to more efficiently cluster multiple graphs in parallel
+clusterBrainGraphList:
+	R CMD BATCH '--args $(rawDataDir) $(procDataDir) $(fileList) $(nBlocks) $(nCores) $(nH)' clusterBrainGraphList.R
+
 #run R script to generate plots
 clusterPlotsAll:
 	$(foreach fPre, $(aFilePre), R CMD BATCH '--args $(procDataDir) $(fPre)' clusterPlots.R;)	
