@@ -63,7 +63,7 @@ registerDoMC(nCores)
 # ---------------------------------------------------------------------
 # run RSC, SCX, CCA in parallel
 # ---------------------------------------------------------------------
-hList = foreach(i = 1:nGrphs) %dopar% {
+hList = foreach(i = 1:nGraphs) %dopar% {
     # input files
     graphInputFile = paste(rawDataDir, preVec[i], '_big_graph.mat', sep='')
     lccCovInputFile = paste(procDataDir, preVec[i], '_big_lcc.txt', sep='')
@@ -73,6 +73,8 @@ hList = foreach(i = 1:nGrphs) %dopar% {
         # read file with largest connected component and coordinates
         coorData = read.table(lccCovInputFile)
 
+        nNodes = length(coorData$V1)
+        
         # create covariate matrix with centered xyz and rescaled to 1 
         # add white noise with sigma = 1/4
         covData = cbind(coorData$V2, coorData$V3, coorData$V4) +
@@ -105,7 +107,7 @@ hList = foreach(i = 1:nGrphs) %dopar% {
         nNodes = length(coorData$V1)
 
         # symmetrize the matrix
-        fiberGraph = fiberGraph + t(fiberGraph)
+        fiberGraph = forceSymmetric(fiberGraph)
         
         # compute the regularized Laplacian
         rSums = rowSums(fiberGraph)
@@ -139,6 +141,10 @@ hList = foreach(i = 1:nGrphs) %dopar% {
     # do regularized spectral clustering for comparison
     if(!file.exists(paste(outDir, preVec[i], "_SC.bin", sep=""))) {
         scSv = lapSvd$u/sqrt(rowSums(lapSvd$u^2))
+
+        # don't reparallelize 
+        registerDoMC(1)
+
         scKM = bigkmeans(scSv, nBlocks, iter.max = 200, nstart = 10)
         scCluster = scKM$cluster
         saveMatrixList(paste(outDir, preVec[i], "_SC", sep=""), list(
@@ -148,6 +154,10 @@ hList = foreach(i = 1:nGrphs) %dopar% {
     #do CCA
     if(!file.exists(paste(outDir, preVec[i], "_CCA.bin", sep=""))) {
         ccaSvd = svd(fiberGraph%*%covData)
+
+        # number of cores 
+        registerDoMC(1)
+
         ccaKM = bigkmeans(ccaSvd$u, nBlocks, iter.max = 200, nstart = 10)
         ccaCluster = ccaKM$cluster
         saveMatrixList(paste(outDir, preVec[i], "_CCA", sep=""),
@@ -156,6 +166,10 @@ hList = foreach(i = 1:nGrphs) %dopar% {
 
     #do SC on X
     if(!file.exists(paste(outDir, preVec[i], "_SCX.bin", sep=""))) {
+
+        # number of cores 
+        registerDoMC(1)
+
         scxKM = bigkmeans(covSvd$u, nBlocks, iter.max = 200, nstart = 10)
         scxCluster = scxKM$cluster
         saveMatrixList(paste(outDir, preVec[i], "_SCX", sep=""),
@@ -170,6 +184,14 @@ hList = foreach(i = 1:nGrphs) %dopar% {
     c(hMin, hMax)
 }
 
+# do memory clean up
+rm(ccaSvd)
+rm(covSvd)
+rm(lapSvd)
+rm(scSv)
+rm(coorData)
+gc()
+
 for(i in 1:nGraphs) {
     hMin = hList[[i]][1]
     hMax = hList[[i]][2]
@@ -182,6 +204,9 @@ for(i in 1:nGraphs) {
     wcssVec = rep(0, nH)
     clusterMat = matrix(rep(0, nH*nNodes), nrow = nH)
 
+    # number of cores 
+    registerDoMC(nCores)
+    
     kmList = foreach(h = hSet) %dopar% {
         cascSvd = getCascSvd(fiberGraph, covData, h, nBlocks)
 

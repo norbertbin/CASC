@@ -1,10 +1,10 @@
 #make file to run the brain graph preprocessing and analysis
 
 #define data directories for large files
-nCores = 12
-nH = 12
+nCores = 10
+nH = 10
 nBlocks = 100
-rawDataDir = ../../brainData/NKI-24_MIGRAINE/data/
+rawDataDir = ../../brainData/KKI-42_MIGRAINE/data/
 procDataDir = ../procData/
 atlasFile = ../../brainData/desikan/desikan_atlas_remap.nii
 
@@ -12,7 +12,7 @@ atlasFile = ../../brainData/desikan/desikan_atlas_remap.nii
 filePre = NKI-TRT_0021001
 
 #for running multiple graphs
-fileList = ../../brainData/NKI-24_MIGRAINE/preFixes_NKI-24.txt
+fileList = ../../brainData/KKI-42_MIGRAINE/preFixes_KKI-42-1.txt
 
 
 #run python script to preprocess data
