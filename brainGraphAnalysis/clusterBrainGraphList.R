@@ -109,11 +109,11 @@ hList = foreach(i = 1:nGraphs) %dopar% {
         # symmetrize the matrix
         fiberGraph = forceSymmetric(fiberGraph)
         
-        # compute the regularized Laplacian
+        # compute the regularized Laplacian and ensure its symmetric
         rSums = rowSums(fiberGraph)
         tau = mean(rSums)
-        fiberGraph = Diagonal(nNodes, 1/sqrt(rSums + tau)) %*% fiberGraph %*%
-            Diagonal(nNodes, 1/sqrt(rSums + tau))
+        fiberGraph = forceSymmetric( Diagonal(nNodes, 1/sqrt(rSums + tau))
+            %*% fiberGraph %*% Diagonal(nNodes, 1/sqrt(rSums + tau)) )
 
         # compute svd's of L and X
         lapSvd = irlba(fiberGraph, nu = nBlocks + 1, m_b = 2*nBlocks)
@@ -185,24 +185,47 @@ hList = foreach(i = 1:nGraphs) %dopar% {
 }
 
 # do memory clean up
-rm(ccaSvd)
-rm(covSvd)
-rm(lapSvd)
-rm(scSv)
-rm(coorData)
+rm(list = c("ccaSvd", "covSvd", "lapSvd", "scSv", "coorData"))
 gc()
 
 for(i in 1:nGraphs) {
-    hMin = hList[[i]][1]
-    hMax = hList[[i]][2]
+    
+    # input files
+    graphInputFile = paste(rawDataDir, preVec[i], '_big_graph.mat', sep='')
+    procCoordFile = paste(procDataDir, preVec[i], '_proc_coord.txt', sep='')
+    lccCovInputFile = paste(procDataDir, preVec[i], '_big_lcc.txt', sep='')
+    
+    covData = as.matrix(read.table(procCoordFile, header = T))
+
+    # read file with largest connected component and coordinates
+    coorData = read.table(lccCovInputFile)
+        
+    # read in connectome data
+    fiberGraph = readMat(graphInputFile)$fibergraph
+
+    # only keep the largest connected component
+    fiberGraph = fiberGraph[coorData$V1 + 1, coorData$V1 + 1]
+    nNodes = length(coorData$V1)
+
+    # symmetrize the matrix
+    fiberGraph = forceSymmetric(fiberGraph)
+        
+    # compute the regularized Laplacian and ensure its symmetric
+    rSums = rowSums(fiberGraph)
+    tau = mean(rSums)
+    fiberGraph = forceSymmetric( Diagonal(nNodes, 1/sqrt(rSums + tau))
+            %*% fiberGraph %*% Diagonal(nNodes, 1/sqrt(rSums + tau)) )
+
 
     # ---------------------------------------------------------------------
     # compute SVD and clusters for set of tuning parameters of CASC
     # ---------------------------------------------------------------------
+    hMin = hList[[i]][1]
+    hMax = hList[[i]][2]
     hSet = seq(hMin, hMax, length.out = nH)
 
     wcssVec = rep(0, nH)
-    clusterMat = matrix(rep(0, nH*nNodes), nrow = nH)
+    clusterMat = matrix(0, nrow = nH, ncol = nNodes)
 
     # number of cores 
     registerDoMC(nCores)
