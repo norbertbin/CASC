@@ -160,18 +160,13 @@ getCcaSvd = function(graphMat, covariates, nBlocks) {
 getCascSvd = function(graphMat, covariates, hTuningParam, nBlocks) {
 
     #insure irlba internal representation is large enough
-    if(nBlocks > 10) {
-        internalDim = 2 * nBlocks
-    }
-    else {
-        internalDim = 20
-    }
+    internalDim = max(2*nBlocks, 20)
 
     #define a custom matrix vector multiply function
     matrixMulti = function(aList, aVector, transposeBool) {
         return( as.vector(aList$graphMat %*% aVector +
                           aList$hTuningParam * aList$covariates %*%
-                          (t(aList$covariates) %*% aVector)) )
+                          crossprod(aList$covariates, aVector) )
     } 
 
     singDecomp = irlbaMod(list(graphMat = graphMat, covariates = covariates,
