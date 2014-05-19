@@ -166,7 +166,7 @@ getCascSvd = function(graphMat, covariates, hTuningParam, nBlocks) {
     matrixMulti = function(aList, aVector, transposeBool) {
         return( as.vector(aList$graphMat %*% aVector +
                           aList$hTuningParam * aList$covariates %*%
-                          crossprod(aList$covariates, aVector) )
+                          crossprod(aList$covariates, aVector) ))
     } 
 
     singDecomp = irlbaMod(list(graphMat = graphMat, covariates = covariates,
