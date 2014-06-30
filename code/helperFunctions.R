@@ -77,6 +77,41 @@ estBlockMat = function(adjMat, nodeBlocks) {
   return(bMat)
 } 
 
+estBlockMatSparse = function(adjMat, nodeBlocks) {
+  
+   nodeCounts = tabulate(nodeBlocks)
+   nodeCounts = nodeCounts[nodeCounts > 0]
+   uniqueBlocks = sort(unique(nodeBlocks))
+   nBlocks = length(uniqueBlocks)
+   bMat = matrix(0, nrow = nBlocks, ncol = nBlocks)  
+	adjMat = as.matrix(summary(adjMat))
+
+   for(i in 1:dim(adjMat)[1]) {
+		bi = nodeBlocks[adjMat[i,1]]
+		bj = nodeBlocks[adjMat[i,2]]
+		bMat[bi, bj] = bMat[bi, bj] + 1 
+	}
+
+	bMat[upper.tri(bMat)] = (bMat + t(bMat))[upper.tri(bMat)]
+	bMat[lower.tri(bMat)] = 0
+
+	for(i in 1:nBlocks) {
+    for(j in i:nBlocks) {
+      if(i == j){
+        bMat[i, i] = bMat[i, i] /
+          (nodeCounts[i]^2 - nodeCounts[i])
+      }
+      else {
+        bMat[i, j] = bMat[i, j] /
+          (nodeCounts[i]*nodeCounts[j])
+        bMat[j, i] = bMat[i, j]
+      }
+    }
+	}
+
+	return(bMat)
+} 
+
 #plot heat map of estimated block matrix
 plotB = function(bMat, outFileName) {
 
