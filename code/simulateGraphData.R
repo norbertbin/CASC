@@ -96,35 +96,29 @@ simAdjMat = function(blockMat, nMembers) {
 # function to simulate sparse adjacency matrix SBM
 # using binding instead of subsetting
 # ---------------------------------------------------------------------
-simSparseAdjMat = function(blockMat, nMembers) {
-    nBlocks = dim(blockMat)[1]
-    nNodes = sum(nMembers)
-    adjacency = NULL
+simSparseAdjMat = function(bMat, nMembers) {
+ nBlocks = dim(bMat)[1]
+ nNodes = sum(nMembers)
+ adjM = NULL
     
-    # fill the aa and xx matrices block by block
-    for(j in nBlocks:1) {
-        adjCol = NULL
-	for(i in nBlocks:1) {
-		if(i == j) {
-                    adjTemp = triu(simBernSparseMat(nMembers[i],
-                                 nMembers[i], blockMat[i,i]), 1)    
-                }
-		else if(i < j) {
-                    adjTemp = simBernSparseMat(nMembers[i], nMembers[j],
-                                         blockMat[i, j])
-		}
-                else {
-                    adjTemp = Matrix(0, nrow = nMembers[i],
-                        ncol = nMembers[j])
-                }
-                adjCol = rBind(adjTemp, adjCol)
-         }
-        
-        adjacency = cBind(adjCol, adjacency)        
+ for(j in nBlocks:1) {
+  adjCol = NULL
+  for(i in nBlocks:1) {
+  	if(i <= j) {
+      adjTemp = Matrix( 
+       simBernSparseVec(nMembers[i],
+             nMembers[j], bMat[i,j]),
+        nrow = nMembers[i], ncol = nMembers[j])
+    }  
+    else {
+     adjTemp = Matrix(0, nrow = nMembers[i],
+                         ncol = nMembers[j])
     }
-
-    # copy upper tri to lower tri for aa
-    return( adjacency + t(adjacency) )   
+    adjCol = rBind(adjTemp, adjCol)
+  }        
+  adjM = cBind(adjCol, adjM)        
+ }
+ return( forceSymmetric(triu(adjM, k=1)) )
 }
 
 # ---------------------------------------------------------------------
@@ -238,27 +232,28 @@ genBlockMatSBM = function(pVec, q, nBlocks) {
 # ---------------------------------------------------------------------
 # function to generate sparse Bernoulli matrix
 # ---------------------------------------------------------------------
-simBernSparseMat = function(nRow, nCol, p) {
+simBernSparseVec = function(nRow, nCol, p) {
+
+	#to prevent overflow problems
+	nRC = round(as.numeric(nRow)*as.numeric(nCol))
 
     if(p == 0) {
-        return( Matrix(0, nrow = nRow, ncol = nCol) )
+        return( sparseVector(0, 1, length = nRC) )
     }
 
-    expNumOnes = nRow*nCol*p
-    sdNumOnes = sqrt(nRow*nCol*p*(1-p))
+    expNumOnes = nRC*p
+    sdNumOnes = sqrt(nRC*p*(1-p))
 
-    indOnes = rnbinom(expNumOnes + round(4*sdNumOnes), 1, p) + 1
+    indOnes = rnbinom(expNumOnes + round(3*sdNumOnes), 1, p) + 1
 
     indCumSum = cumsum(indOnes)
     
-    # in the highly unlikely case of early termination
-    while (max(indCumSum) < nRow*nCol) {
+    while (max(indCumSum) < nRC) {
         indCumSum = c(indCumSum, max(indCumSum) +
             rnbinom(1, 1, p) + 1)
     }
     
-    indCumSum = indCumSum[indCumSum <= nRow*nCol]
+    indCumSum = indCumSum[indCumSum <= nRC]
 
-    return( Matrix(sparseVector(1, indCumSum, nRow*nCol) ,
-                   nrow = nRow, ncol = nCol) )
+    return( sparseVector(1, indCumSum, nRC) )
 }
