@@ -144,3 +144,141 @@ colSd = function(x, na.rm=TRUE) {
   colVar =  colMeans(x*x, na.rm=na.rm) - (colMeans(x, na.rm=na.rm))^2
   return(sqrt(colVar * n/(n-1)))
 }
+
+# ---------------------------------------------------------------------
+# functions for comparison analysis of graph clusters
+# ---------------------------------------------------------------------
+
+# get node and edge counts
+getNodeEdgeCount = function(preVec, rawDataDir, procDataDir) {
+
+    nGraphs = length(preVec)
+    nNodes = vector(length = nGraphs)
+    nEdges = vector(length = nGraphs)
+
+    for(i in 1:nGraphs) {
+        graphInputFile = paste(rawDataDir, preVec[i], '_big_graph.mat', sep='')
+        lccCovInputFile = paste(procDataDir, preVec[i], '_big_lcc.txt', sep='')
+
+        # read file with largest connected component and coordinates
+        coorData = read.table(lccCovInputFile)
+        
+        # read in connectome data
+        fiberGraph = readMat(graphInputFile)$fibergraph
+
+        # only keep the largest connected component
+        fiberGraph = fiberGraph[coorData$V1 + 1, coorData$V1 + 1]
+        nNodes[i] = length(coorData$V1)
+
+        # symmetrize the matrix
+        fiberGraph = forceSymmetric(fiberGraph)
+        
+        # compute number of edges
+        rSums = rowSums(fiberGraph)
+        nEdges[i] = sum(rSums)/2
+    }
+    
+    return(list(nNodes, nEdges))
+}
+
+# get block prob and mean/sd estimates
+writeEstBX = function(preVec, procDataDir, rawDataDir, outDir) {
+
+    nGraphs = length(preVec)
+    bList = list()
+    meanList = list()
+    sdList = list()
+
+    for(i in 1:nGraphs) {
+        if(!file.exists(paste(outDir, preVec[i], '_estimatedBX.bin', sep=''))) {
+            graphInputFile = paste(rawDataDir, preVec[i], '_big_graph.mat',
+                sep='')
+            lccCovInputFile = paste(procDataDir, preVec[i], '_big_lcc.txt',
+                sep='')
+            procCoordFile = paste(procDataDir, preVec[i], '_proc_coord.txt',
+                sep='')
+
+            # read file with largest connected component and coordinates
+            coorData = read.table(lccCovInputFile)
+            
+            # read in connectome data
+            fiberGraph = readMat(graphInputFile)$fibergraph
+
+            # only keep the largest connected component
+            fiberGraph = fiberGraph[coorData$V1 + 1, coorData$V1 + 1]
+
+            # symmetrize the matrix
+            fiberGraph = forceSymmetric(fiberGraph)
+            
+            # compute number of edges
+            rSums = rowSums(fiberGraph)
+
+            # load cluster assignments
+            cascCluster = as.vector(loadMatrix(paste(outDir, preVec[i], "_CASC",
+                sep=""), 1))
+
+            # estimate block matrix
+            bList[[i]] = estBlockMatSparse(fiberGraph, cascCluster)
+
+            # estimate block location mean and sd
+            nClust = length(unique(cascCluster))
+            clusterMeans = matrix(0, ncol = 3, nrow = nClust)
+            clusterSd = matrix(0, ncol = 3, nrow = nClust)
+            coorMat = as.matrix(coorData)[,2:4] + 1
+
+            for(j in 1:nClust) {
+                clusterMeans[i,] = colMeans(coorMat[cascCluster[[i]] == j, ])
+                clusterSd[i,] = colSd(coorMat[cascCluster[[i]] == j, ])
+            }
+
+            meanList[[i]] = clusterMeans
+            sdList[[i]] = clusterSd
+
+            # write results
+            saveMatrixList(paste(outDir, preVec[i], '_estimatedBX', sep=''),
+                           list(bList[[i]], meanList[[i]], sdList[[i]] ))
+        }
+    }
+
+    return(true)
+}
+
+# compute the cluster alignment matrix for brain graph pair
+hDist = function(mean1, mean2, sd1, sd2) {
+
+	nClust = dim(mean1)[1]
+	dMat = matrix(0, nrow = nClust, ncol = nClust)
+
+	for(i in 1:(nClust-1)) {
+		for(j in (i+1):nClust) {
+			dMat[i,j] = sqrt(sum((mean1[i,] - mean2[j,])^2
+                    / (sd1[i,]^2+sd2[j,]^2)))
+		}
+	}
+
+	return(dMat)
+}
+
+# compute the cluster alignment matrix for all brain graphs
+hDistAll = function(preVec, outDir) {
+
+    nGraphs = length(preVec)
+    
+    for(i in 1:nGraphs) {
+        mean1 = loadMatrix(paste(outDir, preVec[i], '_estimatedBX', sep=''), 2)
+        sd1 = loadMatrix(paste(outDir, preVec[i], '_estimatedBX', sep=''), 3)
+        hDistList = list()
+
+        for(j in 1:nGraphs) {
+            mean2 = loadMatrix(paste(outDir, preVec[j], '_estimatedBX', sep='')
+                , 2)
+            sd2 = loadMatrix(paste(outDir, preVec[j], '_estimatedBX', sep='')
+                , 3)
+
+            hDistList[[j]] = hDist(mean1, mean2, sd1, sd2)
+        }
+
+    }
+
+    return(hDistList)
+}
