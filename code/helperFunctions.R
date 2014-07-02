@@ -5,6 +5,10 @@ if (!require(gplots)) {
     install.packages('gplots', dependencies = T)
     require(gplots)
 }
+if (!require(clue)) {
+    install.packages('clue', dependencies = T)
+    require(clue)
+}
 
 # ---------------------------------------------------------------------
 # some cluster ploting helper functions
@@ -249,36 +253,71 @@ hDist = function(mean1, mean2, sd1, sd2) {
 	nClust = dim(mean1)[1]
 	dMat = matrix(0, nrow = nClust, ncol = nClust)
 
-	for(i in 1:(nClust-1)) {
-		for(j in (i+1):nClust) {
+	for(i in 1:nClust) {
+		for(j in i:nClust) {
 			dMat[i,j] = sqrt(sum((mean1[i,] - mean2[j,])^2
                     / (sd1[i,]^2+sd2[j,]^2)))
 		}
 	}
+    dMat[lower.tri(dMat)] = dMat[upper.tri(dMat)]
 
 	return(dMat)
 }
 
 # compute the cluster alignment matrix for all brain graphs
-hDistAll = function(preVec, outDir) {
+writeHDistAll = function(preVec, outDir) {
 
     nGraphs = length(preVec)
     
     for(i in 1:nGraphs) {
-        mean1 = loadMatrix(paste(outDir, preVec[i], '_estimatedBX', sep=''), 2)
-        sd1 = loadMatrix(paste(outDir, preVec[i], '_estimatedBX', sep=''), 3)
-        hDistList = list()
 
-        for(j in 1:nGraphs) {
-            mean2 = loadMatrix(paste(outDir, preVec[j], '_estimatedBX', sep='')
-                , 2)
-            sd2 = loadMatrix(paste(outDir, preVec[j], '_estimatedBX', sep='')
-                , 3)
+        if(!file.exists(paste(outDir, preVec[i], '_hDistMat.bin', sep='')) {
+            mean1 = loadMatrix(paste(outDir, preVec[i], '_estimatedBX',
+                sep=''), 2)
+            sd1 = loadMatrix(paste(outDir, preVec[i], '_estimatedBX',
+                sep=''), 3)
+            hDistList = list()
 
-            hDistList[[j]] = hDist(mean1, mean2, sd1, sd2)
+            for(j in 1:nGraphs) {
+                mean2 = loadMatrix(paste(outDir, preVec[j], '_estimatedBX',
+                    sep=''), 2)
+                sd2 = loadMatrix(paste(outDir, preVec[j], '_estimatedBX',
+                    sep=''), 3)
+
+                hDistList[[j]] = hDist(mean1, mean2, sd1, sd2)
+            }
+
+            # write results
+            saveMatrixList(paste(outDir, preVec[i], '_hDistMat', sep=''),
+                       hDistList)
         }
 
     }
 
     return(hDistList)
+}
+
+# match clusters for a pair of brain graphs using the Hungarian algo
+matchPairClusters = function(hDistList1, id1, id2) {
+
+    hDist = hDistList[[id2]]
+
+    return( as.vector(solve_LSAP(hDist)) )
+}
+
+# get Frobenius norm of a pair of brain graph block prob.
+calcFrobNormB = function(bMat1, bMat2, permVec) {
+    return( sqrt(sum((bMat1 - bMat2[permVec, permVec])^2)) )
+}
+
+# get Frobenius norm of all pairs of brain graphs
+getFrobNormBAll = function(preVec, outDir) {
+    nGraphs = length(preVec)
+    fMat = matrix(0, nrow = nGraphs, ncol = nGraphs)
+
+    for(i in 1:(nGraphs-1)) {
+        for(j in (i+1):nGraphs) {
+            
+        }
+    }
 }
