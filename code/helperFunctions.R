@@ -271,7 +271,7 @@ writeHDistAll = function(preVec, outDir) {
     
     for(i in 1:nGraphs) {
 
-        if(!file.exists(paste(outDir, preVec[i], '_hDistMat.bin', sep='')) {
+        if(!file.exists(paste(outDir, preVec[i], '_hDistMat.bin', sep=''))) {
             mean1 = loadMatrix(paste(outDir, preVec[i], '_estimatedBX',
                 sep=''), 2)
             sd1 = loadMatrix(paste(outDir, preVec[i], '_estimatedBX',
