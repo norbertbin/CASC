@@ -298,10 +298,7 @@ writeHDistAll = function(preVec, outDir) {
 }
 
 # match clusters for a pair of brain graphs using the Hungarian algo
-matchPairClusters = function(hDistList1, id1, id2) {
-
-    hDist = hDistList[[id2]]
-
+matchPairClusters = function(hDist, id1, id2) {
     return( as.vector(solve_LSAP(hDist)) )
 }
 
@@ -316,8 +313,19 @@ getFrobNormBAll = function(preVec, outDir) {
     fMat = matrix(0, nrow = nGraphs, ncol = nGraphs)
 
     for(i in 1:(nGraphs-1)) {
+        bMati = loadMatrix(paste(outDir, preVec[i], '_estimatedBX',
+            sep=''), 1)
+        
         for(j in (i+1):nGraphs) {
-            
+            hDist = loadMatrix(paste(outDir, preVec[i], '_hDistMat', sep=''), j)
+            permVec = matchPairClusters(hDist, i, j)
+
+            bMatj = loadMatrix(paste(outDir, preVec[j], '_estimatedBX',
+                sep=''), 1)
+       
+            fMat[i, j] = calcForbNormB(bMati, bMatj, permVec)
         }
     }
+
+    return(fMat)
 }
