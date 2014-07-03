@@ -228,8 +228,8 @@ writeEstBX = function(preVec, procDataDir, rawDataDir, outDir) {
             coorMat = as.matrix(coorData)[,2:4] + 1
 
             for(j in 1:nClust) {
-                clusterMeans[i,] = colMeans(coorMat[cascCluster[[i]] == j, ])
-                clusterSd[i,] = colSd(coorMat[cascCluster[[i]] == j, ])
+                clusterMeans[j,] = colMeans(coorMat[cascCluster == j, ])
+                clusterSd[j,] = colSd(coorMat[cascCluster == j, ])
             }
 
             meanList[[i]] = clusterMeans
@@ -241,7 +241,7 @@ writeEstBX = function(preVec, procDataDir, rawDataDir, outDir) {
         }
     }
 
-    return(true)
+    return(T)
 }
 
 # compute the cluster alignment matrix for brain graph pair
@@ -291,7 +291,7 @@ writeHDistAll = function(preVec, outDir) {
 
     }
 
-    return(hDistList)
+    return(T)
 }
 
 # match clusters for a pair of brain graphs using the Hungarian algo
