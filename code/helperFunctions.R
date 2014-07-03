@@ -320,7 +320,7 @@ getFrobNormBAll = function(preVec, outDir) {
             bMatj = loadMatrix(paste(outDir, preVec[j], '_estimatedBX',
                 sep=''), 1)
        
-            fMat[i, j] = calcForbNormB(bMati, bMatj, permVec)
+            fMat[i, j] = calcFrobNormB(bMati, bMatj, permVec)
         }
     }
 
