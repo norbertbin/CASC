@@ -214,9 +214,6 @@ writeEstBX = function(preVec, procDataDir, rawDataDir, outDir) {
             # symmetrize the matrix
             fiberGraph = forceSymmetric(fiberGraph)
             
-            # compute number of edges
-            rSums = rowSums(fiberGraph)
-
             # load cluster assignments
             cascCluster = as.vector(loadMatrix(paste(outDir, preVec[i], "_CASC",
                 sep=""), 1))
