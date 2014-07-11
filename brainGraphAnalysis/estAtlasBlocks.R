@@ -98,7 +98,7 @@ idRemove = c( which(is.na(atlasCluster)), which(atlasCluster %in%
     smallClusters))
 
 # save coordinates
-saveMatrixList(paste(procDataDir, filePre, '_big_lcc_sim.txt', sep=''),
+saveMatrixList(paste(procDataDir, filePre, '_big_lcc_sim', sep=''),
                list(coorMat[-idRemove,]))
 
 # estimate block matrix
