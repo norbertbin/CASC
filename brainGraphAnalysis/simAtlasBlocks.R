@@ -1,9 +1,13 @@
 # ---------------------------------------------------------------------
 # load packages and source files
 # ---------------------------------------------------------------------
-if (!require(rARPACK)) {
-    install.packages('rARPACK', dependencies = T)
-    require(rARPACK)
+#if (!require(rARPACK)) {
+#    install.packages('rARPACK', dependencies = T)
+#    require(rARPACK)
+#}
+if (!require(irlba)) {
+    install.packages('irlba', dependencies = T)
+    require(irlba)
 }
 if (!require(foreach)) {
     install.packages('foreach', dependencies = T)
@@ -34,6 +38,7 @@ nCores = as.numeric(comArgs[2])
 nH = as.numeric(comArgs[3])
 
 outDir = 'cache/'
+procDataDir = '../procData/'
 
 # block matrix file
 blockMatFile = paste(outDir, filePre, '_estimatedB', sep='')
@@ -73,9 +78,15 @@ for(i in 1:nIter) {
         while( min(rowSums(adjMat)) == 0) {
             adjMat = simSparseAdjMat(bMat, nMembers)
         }
-        
-        coordMat = simCoordMat(clusterMeans, clusterSd, nMembers)
 
+        #simulate location from normal dist
+        #coordMat = simCoordMat(clusterMeans, clusterSd, nMembers)
+
+        #use fixed location
+        coordData = read.table(paste(procDataDir, filePre, '_big_lcc.txt',
+            sep=''))
+        coordMat = as.matrix(coordData)[,2:4] + 1
+        
         # add normal noise
         coordMat = coordMat + cbind(rnorm(nNodes, 0, .25),
             rnorm(nNodes, 0, .25), rnorm(nNodes, 0, .25))
@@ -94,8 +105,10 @@ for(i in 1:nIter) {
             Diagonal(nNodes, 1/sqrt(rSums + tau))
         
         # compute svd's of L and X
-        lapSvd = eigs(adjMat, nBlocks + 1, opts = list(maxitr = 10000))
-        lapSvd$vectors = lapSvd$vectors[,1:nBlocks]
+        # lapSvd = eigs(adjMat, nBlocks + 1, opts = list(maxitr = 10000))
+        # compute svd's using irlba since we are using this for CASC
+        lapSvd = irlba(adjMat, nu = nBlocks + 1, m_b = 2*(nBlocks + 1)) 
+        lapSvd$u = lapSvd$u[ ,1:nBlocks]
         covSvd = svd(coordMat)
 
         # compute upper and lower bounds for h
@@ -106,7 +119,7 @@ for(i in 1:nIter) {
         # for comparison compute RSC, CCA and spectral clustering on X
         # ---------------------------------------------------------------------
         # do regularized spectral clustering for comparison
-        scSv = lapSvd$vectors/sqrt(rowSums(lapSvd$vectors^2))
+        scSv = lapSvd$u/sqrt(rowSums(lapSvd$u^2))
         scKM = bigkmeans(scSv, nBlocks, iter.max = 200, nstart = 10)
         scCluster = scKM$cluster
 
