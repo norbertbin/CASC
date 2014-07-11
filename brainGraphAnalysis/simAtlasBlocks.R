@@ -83,13 +83,13 @@ for(i in 1:nIter) {
         #coordMat = simCoordMat(clusterMeans, clusterSd, nMembers)
 
         #use fixed location
-        coordData = read.table(paste(procDataDir, filePre, '_big_lcc.txt',
+        coordData = read.table(paste(procDataDir, filePre, '_big_lcc_sim.txt',
             sep=''))
         coordMat = as.matrix(coordData)[,2:4] + 1
         
         # add normal noise
-        coordMat = coordMat + cbind(rnorm(nNodes, 0, .25),
-            rnorm(nNodes, 0, .25), rnorm(nNodes, 0, .25))
+        #coordMat = coordMat + cbind(rnorm(nNodes, 0, .25),
+        #    rnorm(nNodes, 0, .25), rnorm(nNodes, 0, .25))
             
         # demean the columns
         coordMat = coordMat - rep(1, nNodes) %*%

@@ -97,6 +97,10 @@ smallClusters = which(nodeCounts < 500)
 idRemove = c( which(is.na(atlasCluster)), which(atlasCluster %in%
     smallClusters))
 
+# save coordinates
+saveMatrixList(paste(procDataDir, filePre, '_big_lcc_sim.txt', sep=''),
+               list(coorMat[-idRemove,]))
+
 # estimate block matrix
 bMat = estBlockMat(fiberGraph[-idRemove, -idRemove], atlasCluster[-idRemove])
 
