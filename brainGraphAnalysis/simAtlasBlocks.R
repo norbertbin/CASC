@@ -55,7 +55,7 @@ nodeCounts = loadMatrix(covParamFile, 3)
 # ---------------------------------------------------------------------
 # run simulations
 # ---------------------------------------------------------------------
-nIter = 5
+nIter = 10
 nBlocks = dim(bMat)[1]
 nCov = dim(clusterMeans)[2]
 
@@ -111,8 +111,8 @@ for(i in 1:nIter) {
         covSvd = svd(coordMat)
 
         # compute upper and lower bounds for h
-        hMin = (lapSvd$values[nBlocks] - lapSvd$values[nBlocks+1])/covSvd$d[1]^2
-        hMax = lapSvd$values[1]/covSvd$d[min(nBlocks, nCov)]
+        hMin = (lapSvd$d[nBlocks] - lapSvd$d[nBlocks+1])/covSvd$d[1]^2
+        hMax = lapSvd$d[1]/covSvd$d[min(nBlocks, nCov)]
 
         # ---------------------------------------------------------------------
         # for comparison compute RSC, CCA and spectral clustering on X
