@@ -50,7 +50,7 @@ covParamFile = paste(outDir, filePre, '_covParamEst', sep='')
 
 clusterMeans = loadMatrix(covParamFile, 1)
 clusterSd = loadMatrix(covParamFile, 2)
-nodeCounts = loadMatrix(covParamFile, 3)
+nodeClusters = loadMatrix(covParamFile, 3)
 
 # ---------------------------------------------------------------------
 # run simulations
@@ -63,10 +63,9 @@ misRateSc = vector(length = nIter)
 misRateCasc = vector(length = nIter)
 misRateCca = vector(length = nIter)
 misRateScx = vector(length = nIter)
-
-
-nNodes = sum(nodeCounts)
-nMembers = nodeCounts
+ 
+nNodes = length(nodeClusters)
+nMembers = table(nodeClusters)
 
 for(i in 1:nIter) {
         # set number of cores
@@ -85,6 +84,9 @@ for(i in 1:nIter) {
         #use fixed location
         coordMat = loadMatrix(paste(procDataDir, filePre, '_big_lcc_sim',
             sep=''), 1)
+
+        #permute fixed location for correct block membership
+        coordMat = coordMat[sort(nodeClusters, index.return=T)$ix,]
         
         # add normal noise
         #coordMat = coordMat + cbind(rnorm(nNodes, 0, .25),

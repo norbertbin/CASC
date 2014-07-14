@@ -130,4 +130,4 @@ for(i in retainedClusters) {
 # save matrix and vector of block node counts           
 saveMatrixList(paste(outDir, filePre, '_covParamEst', sep=''),
                list(clusterMeans, clusterSd,
-                    matrix(table(atlasCluster[-idRemove]))))
+                    matrix(atlasCluster[-idRemove])))
