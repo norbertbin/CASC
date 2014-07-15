@@ -32,6 +32,7 @@ source('simulateGraphData.R')
 source('readWriteMatrix.R')
 source('extEvalMethods.R')
 source('spectralClusteringMethods.R')
+source('helperFunctions.R')
 setwd(initialDir)
 # ---------------------------------------------------------------------
 # load block matrix and covariate means 
@@ -77,9 +78,10 @@ nNodes = length(nodeClusters)
 nMembers = table(nodeClusters)
 nodeMembership = rep(1:nBlocks, times = nMembers)
 
-for(i in 1:nIter) {
-        # set number of cores
-        registerDoMC(nCores)
+# set number of cores
+registerDoMC(nCores)
+
+foreach(i = 1:nIter) %dopar% {
 
         adjMat = simSparseAdjMat(bMat, nMembers)
 
@@ -88,6 +90,28 @@ for(i in 1:nIter) {
             adjMat = simSparseAdjMat(bMat, nMembers)
         }
 
+
+        # compute regularized graph Laplacian
+        rSums = rowSums(adjMat)
+        tau = sum(rSums)/length(rSums)
+        adjMat = Diagonal(nNodes, 1/sqrt(rSums + tau)) %*% adjMat %*%
+            Diagonal(nNodes, 1/sqrt(rSums + tau))
+        
+        # compute svd's of L and X
+        # lapSvd = eigs(adjMat, nBlocks + 1, opts = list(maxitr = 10000))
+        # compute svd's using irlba since we are using this for CASC
+        lapSvd = irlba(adjMat, nu = nBlocks + 1, m_b = 2*(nBlocks + 1)) 
+        lapSvd$u = lapSvd$u[ ,1:nBlocks]
+
+        #save the result matrix
+        saveMatrixList(paste(outDir, 'simLapSvd_', i, sep=''),
+                       list(lapSvd$u, lapSvd$d))
+        saveMatrixList(paste(outDir, 'simAdjMat_', i, sep=''),
+                       list(adjMat))
+}
+
+
+for(i in 1:nIter) {
         #simulate location from normal dist
         #coordMat = simCoordMat(clusterMeans, clusterSd, nMembers)
 
@@ -108,20 +132,15 @@ for(i in 1:nIter) {
 
         # rescale
         coordMat = coordMat/max(coordMat)
-
-        # compute regularized graph Laplacian
-        rSums = rowSums(adjMat)
-        tau = sum(rSums)/length(rSums)
-        adjMat = Diagonal(nNodes, 1/sqrt(rSums + tau)) %*% adjMat %*%
-            Diagonal(nNodes, 1/sqrt(rSums + tau))
-        
-        # compute svd's of L and X
-        # lapSvd = eigs(adjMat, nBlocks + 1, opts = list(maxitr = 10000))
-        # compute svd's using irlba since we are using this for CASC
-        lapSvd = irlba(adjMat, nu = nBlocks + 1, m_b = 2*(nBlocks + 1)) 
-        lapSvd$u = lapSvd$u[ ,1:nBlocks]
         covSvd = svd(coordMat)
 
+        # load matrix
+        lapSvd = list()
+        lapSvd$u = loadMatrix(paste(outDir, 'simLapSvd_', i, sep=''), 1)
+        lapSvd$d = loadMatrix(paste(outDir, 'simLapSvd_', i, sep=''), 2)
+
+        adjMat = loadMatrix(paste(outDir, 'simAdjMat_', i, sep=''), 1)
+        
         # compute upper and lower bounds for h
         hMin = (lapSvd$d[nBlocks] - lapSvd$d[nBlocks+1])/covSvd$d[1]^2
         hMax = lapSvd$d[1]/covSvd$d[min(nBlocks, nCov)]
@@ -185,10 +204,13 @@ for(i in 1:nIter) {
         
         #track progress
         write.table(t(c(misRateSc[i], misRateCasc[i], misRateCca[i],
-                      misRateScx[i], ariSc[i], ariCasc[i], ariCca[i],
-                        ariScx[i])), append = T, row.names = F,
-                    col.names = F, paste(outDir, 'logSimAtlasBlocks.txt',
+                      misRateScx[i])), append = T, row.names = F,
+                    col.names = F, paste(outDir, 'logSimAtlasMisRate.txt',
                         sep=''))
-
+        
+        write.table(t(c(ariSc[i], ariCasc[i], ariCca[i],
+                        ariScx[i])), append = T, row.names = F,
+                    col.names = F, paste(outDir, 'logSimAtlasAri.txt',
+                        sep=''))
 }
 
