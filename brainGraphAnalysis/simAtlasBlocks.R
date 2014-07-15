@@ -34,6 +34,7 @@ source('extEvalMethods.R')
 source('spectralClusteringMethods.R')
 source('helperFunctions.R')
 setwd(initialDir)
+
 # ---------------------------------------------------------------------
 # load block matrix and covariate means 
 # ---------------------------------------------------------------------
@@ -89,7 +90,6 @@ foreach(i = 1:nIter) %dopar% {
         while( min(rowSums(adjMat)) == 0) {
             adjMat = simSparseAdjMat(bMat, nMembers)
         }
-
 
         # compute regularized graph Laplacian
         rSums = rowSums(adjMat)
