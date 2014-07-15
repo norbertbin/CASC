@@ -21,6 +21,10 @@ if (!require(biganalytics)) {
     install.packages('biganalytics', dependencies = T)
     require(biganalytics)
 }
+if (!require(mclust)) {
+    install.packages('mclust', dependencies = T)
+    require(mclust)
+}
 
 initialDir = getwd()
 setwd('../code/')
@@ -63,9 +67,15 @@ misRateSc = vector(length = nIter)
 misRateCasc = vector(length = nIter)
 misRateCca = vector(length = nIter)
 misRateScx = vector(length = nIter)
- 
+
+ariSc = vector(length = nIter)
+ariCasc = vector(length = nIter)
+ariCca = vector(length = nIter)
+ariScx = vector(length = nIter)
+
 nNodes = length(nodeClusters)
 nMembers = table(nodeClusters)
+nodeMembership = rep(1:nBlocks, times = nMembers)
 
 for(i in 1:nIter) {
         # set number of cores
@@ -167,19 +177,18 @@ for(i in 1:nIter) {
         misRateCca[i] = misClustRateClust(ccaCluster, nMembers)
         misRateScx[i] = misClustRateClust(scxCluster, nMembers)
 
+        # compute and store the ARI for each method
+        ariSc[i] = adjustedRandIndex(scCluster, nodeMembership)
+        ariCasc[i] = adjustedRandIndex(cascCluster, nodeMembership)
+        ariCca[i] = adjustedRandIndex(ccaCluster, nodeMembership)
+        ariScx[i] = adjustedRandIndex(scxCluster, nodeMembership)
+        
         #track progress
         write.table(t(c(misRateSc[i], misRateCasc[i], misRateCca[i],
-                      misRateScx[i])), append = T, row.names = F,
+                      misRateScx[i], ariSc[i], ariCasc[i], ariCca[i],
+                        ariScx[i])), append = T, row.names = F,
                     col.names = F, paste(outDir, 'logSimAtlasBlocks.txt',
                         sep=''))
 
 }
-
-# save misclustering results
-misRates = data.frame(casc = rowSums(misRateCasc)/nIter,
-    cca = rowSums(misRateCca)/nIter,
-    sc = rowSums(misRateSc)/nIter,
-    scx = rowSums(misRateScx)/nIter)
-
-write.table(misRates, paste(outDir, 'simAtlasBlocks.txt', sep='')) 
 
