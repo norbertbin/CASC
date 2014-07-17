@@ -105,11 +105,10 @@ foreach(i = 1:nIter) %dopar% {
 
         #save the result matrix
         saveMatrixList(paste(outDir, 'simLapSvd_', i, sep=''),
-                       list(lapSvd$u, lapSvd$d))
+                       list(lapSvd$u, as.matrix(lapSvd$d)))
         saveMatrixList(paste(outDir, 'simAdjMat_', i, sep=''),
                        list(adjMat))
 }
-
 
 for(i in 1:nIter) {
         #simulate location from normal dist
@@ -137,7 +136,8 @@ for(i in 1:nIter) {
         # load matrix
         lapSvd = list()
         lapSvd$u = loadMatrix(paste(outDir, 'simLapSvd_', i, sep=''), 1)
-        lapSvd$d = loadMatrix(paste(outDir, 'simLapSvd_', i, sep=''), 2)
+        lapSvd$d = as.vector(loadMatrix(
+            paste(outDir, 'simLapSvd_', i, sep=''), 2))
 
         adjMat = loadMatrix(paste(outDir, 'simAdjMat_', i, sep=''), 1)
         
