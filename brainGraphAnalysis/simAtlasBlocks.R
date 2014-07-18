@@ -106,8 +106,7 @@ foreach(i = 1:nIter) %dopar% {
         #save the result matrix
         saveMatrixList(paste(outDir, 'simLapSvd_', i, sep=''),
                        list(lapSvd$u, as.matrix(lapSvd$d)))
-        saveMatrixList(paste(outDir, 'simAdjMat_', i, sep=''),
-                       list(adjMat))
+        saveSparseMatrix(paste(outDir, 'simAdjMat_', i, sep=''), adjMat)
 }
 
 for(i in 1:nIter) {
@@ -139,7 +138,7 @@ for(i in 1:nIter) {
         lapSvd$d = as.vector(loadMatrix(
             paste(outDir, 'simLapSvd_', i, sep=''), 2))
 
-        adjMat = loadMatrix(paste(outDir, 'simAdjMat_', i, sep=''), 1)
+        adjMat = loadSparseMatrix(paste(outDir, 'simAdjMat_', i, sep=''))
         
         # compute upper and lower bounds for h
         hMin = (lapSvd$d[nBlocks] - lapSvd$d[nBlocks+1])/covSvd$d[1]^2
