@@ -96,6 +96,7 @@ foreach(i = 1:nIter) %dopar% {
         tau = sum(rSums)/length(rSums)
         adjMat = Diagonal(nNodes, 1/sqrt(rSums + tau)) %*% adjMat %*%
             Diagonal(nNodes, 1/sqrt(rSums + tau))
+        adjMat = forceSymmetric(adjMat)
         
         # compute svd's of L and X
         # lapSvd = eigs(adjMat, nBlocks + 1, opts = list(maxitr = 10000))
@@ -139,6 +140,7 @@ for(i in 1:nIter) {
             paste(outDir, 'simLapSvd_', i, sep=''), 2))
 
         adjMat = loadSparseMatrix(paste(outDir, 'simAdjMat_', i, sep=''))
+        adjMat = forceSymmetric(adjMat)
         
         # compute upper and lower bounds for h
         hMin = (lapSvd$d[nBlocks] - lapSvd$d[nBlocks+1])/covSvd$d[1]^2

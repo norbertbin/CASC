@@ -46,6 +46,7 @@ loadMatrix <- function(baseName = "data", index) {
 # ---------------------------------------------------------------------
 # Functions to read/write sparse matrix into a binary file
 # ---------------------------------------------------------------------
+# TODO: handle symmetric case explicitly 
 saveSparseMatrix = function(baseName, sMat) {
     wSMat = as.matrix(summary(sMat))
     wSMat = rbind(wSMat, c(sMat@Dim, 0))
