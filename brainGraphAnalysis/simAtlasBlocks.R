@@ -171,6 +171,9 @@ for(i in 1:nIter) {
         wcssVec = rep(0, nH)
         clusterMat = matrix(rep(0, nH*nNodes), nrow = nH)
 
+        # set number of cores
+        registerDoMC(nCores)
+
         kmList = foreach(h = hSet) %dopar% {
             cascSvd = getCascSvd(adjMat, coordMat, h, nBlocks)$singVec
 
