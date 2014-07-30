@@ -10,17 +10,20 @@ if (!require(lattice)) {
     require(lattice)
 }
 
-
-outDir = "figs/"
+outDir = "Figs/"
 
 # ---------------------------------------------------------------------
 # read in data from txt files
 # ---------------------------------------------------------------------
-datPQ = read.table(paste(outDir, "simCompMethodsPQ.txt"), header=T)
-datDense = read.table(paste(outDir, "simCompMethodsDense.txt"), header=T)
-datCovProb = read.table(paste(outDir, "simCompMethodsCovProb.txt"), header=T)
-datNumCov = read.table(paste(outDir, "simCompMethodsNumCov.txt"), header=T)
-datMember = read.table(paste(outDir, "simDiffGroupMember.txt"), header=T)
+datPQ = read.table(paste(outDir, "simCompMethodsPQ.txt", sep=""), header=T)
+datDense = read.table(paste(outDir, "simCompMethodsDense.txt", sep=""),
+    header=T)
+datCovProb = read.table(paste(outDir, "simCompMethodsCovProb.txt", sep=""),
+    header=T)
+datNumCov = read.table(paste(outDir, "simCompMethodsNumCov.txt", sep=""),
+    header=T)
+datMember = read.table(paste(outDir, "simDiffGroupMember.txt", sep=""),
+    header=T)
 
 # ---------------------------------------------------------------------
 # generate plots
@@ -38,7 +41,7 @@ pdf(paste(outDir, "simCompMethodsPQ.pdf", sep=""), width = 7, height = 7)
 print(
 xyplot(misClustRate ~ deltaPQ, group = group, type = "b", pch = 1:4,
            cex = 1.2, data = datPQ, ylab = "Average mis-clustering rate",
-           xlab = "Difference in within and between block probabilities (p - q)", lwd = 2, key = list(
+           xlab = "Difference in within and between block probabilities (p - q)", main="(a)", lwd = 2, key = list(
                                text = list(legLab),
                                lines = list(col = 
 			trellis.par.get()$superpose.symbol$col[1:4], lwd = 2),
@@ -53,7 +56,7 @@ pdf(paste(outDir, "simCompMethodsDense.pdf", sep=""), width = 7, height = 7)
 print(
     xyplot(misClustRate ~ nNodes, group = group, type = "b", pch = 1:4,
            cex = 1.2, data = datDense, ylab = "Average mis-clustering rate",
-           xlab = "Number of nodes (N)", lwd = 2, key = list(
+           xlab = "Number of nodes (N)", main="(b)", lwd = 2, key = list(
                                text = list(legLab),
                                lines = list(col = 
 			trellis.par.get()$superpose.symbol$col[1:4], lwd = 2),
@@ -68,7 +71,9 @@ pdf(paste(outDir, "simCompMethodsCovProb.pdf", sep=""), width = 7, height = 7)
 print(
     xyplot(misClustRate ~ deltaCovProb, group = group, type = "b", pch = 1:4,
            cex = 1.2, data = datCovProb, ylab = "Average mis-clustering rate",
-           xlab = "Difference in covariate probabilities (m_1 - m_2)", lwd = 2, key = list(
+           xlab = expression(
+               'Difference in covariate probabilities (m'[1]*' - m'[2]*')'),
+           main="(a)", lwd = 2, key = list(
                                text = list(legLab),
                                lines = list(col = 
 			trellis.par.get()$superpose.symbol$col[1:4], lwd = 2),
@@ -83,7 +88,7 @@ pdf(paste(outDir, "simCompMethodsNumCov.pdf", sep=""), width = 7, height = 7)
 print(
     xyplot(misClustRate ~ nCov, group = group, type = "b", pch = 1:4,
            cex = 1.2, data = datNumCov, ylab = "Average mis-clustering rate",
-           xlab = "Number of Covariates (R)", lwd = 2, key = list(
+           xlab = "Number of Covariates (R)", main="(b)", lwd = 2, key = list(
                                text = list(legLab),
                                lines = list(col = 
 			trellis.par.get()$superpose.symbol$col[1:4], lwd = 2),
@@ -98,8 +103,8 @@ pdf(paste(outDir, "simDiffGroupMember.pdf", sep=""), width = 7, height = 7)
 print(
     xyplot(misClustRate ~ propIncorrect, group = group, type = "b", pch = 1:4,
            cex = 1.2, data = datMember, ylab = "Average mis-clustering rate",
-           xlab = "Proportion of correct group memberships", lwd = 2,
-           key = list(
+           xlab = "Proportion of covariate to graph block membership agreement"
+           , lwd = 2, key = list(
                                text = list(legLab),
                                lines = list(col = 
 			trellis.par.get()$superpose.symbol$col[1:4], lwd = 2),

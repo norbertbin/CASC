@@ -11,5 +11,8 @@ simCompMethodsCov: simCompMethodsCov.R
 simDiffGroupMember: simDiffGroupMember.R
 	R CMD BATCH simDiffGroupMember.R simDiffGroupMember.Rout
 
+makePlots: makePlots.R
+	R CMD BATCH makePlots.R makePlots.Rout
+
 clean:
 	rm -f *.Rout figs/*
