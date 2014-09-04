@@ -34,7 +34,7 @@ covProb2 = .1
 p = .03 
 q = .016
 propIncorrectSeq = seq(.5, 0, by = -.1)
-nIter = 1
+nIter = 100
 method = "regLaplacian"
 
 nPoints = length(propIncorrectSeq)
@@ -88,10 +88,11 @@ misClustData = data.frame(propIncorrect = rep(1 - propIncorrectSeq, 4),
     group = rep(1:4, each = nPoints))
 
 #output txt file with results
-write.table(misClustData, file = paste(outDir, "simDiffGroupMember.txt"))
+write.table(misClustData, file = paste(outDir, "simDiffGroupMember.txt",
+                              sep = ""))
 
 #create figure
-pdf(paste(outDir, "simDiffGroupMember.pdf"), width = 7, height = 7)
+pdf(paste(outDir, "simDiffGroupMember.pdf", sep = ""), width = 7, height = 7)
 print(
     xyplot(misClustRate ~ propIncorrect, group = group, type = "b", pch = 1:4,
            data = misClustData, ylab = "Average Mis-clustering Rate",

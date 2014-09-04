@@ -33,7 +33,7 @@ covProb1 = .5
 p = .03 
 q = .016
 deltaCovProbSeq = seq(0, .4, by = .05)
-nIter = 1
+nIter = 100
 method = "regLaplacian"
 
 nPoints = length(deltaCovProbSeq)
@@ -86,10 +86,12 @@ misClustData = data.frame(deltaCovProb = rep(deltaCovProbSeq, 4), misClustRate =
     group = rep(1:4, each = nPoints))
 
 #output txt file with results
-write.table(misClustData, file = paste(outDir, "simCompMethodsCovProb.txt"))
+write.table(misClustData, file = paste(outDir, "simCompMethodsCovProb.txt",
+                              sep = ""))
 
 #create figure
-pdf(paste(outDir, "simCompMethodsCovProb.pdf"), width = 7, height = 7)
+pdf(paste(outDir, "simCompMethodsCovProb.pdf", sep = ""),
+    width = 7, height = 7)
 print(
     xyplot(misClustRate ~ deltaCovProb, group = group, type = "b", pch = 1:4,
            data = misClustData, ylab = "Average Mis-clustering Rate",
@@ -116,7 +118,7 @@ covProb2 = .1
 p = .03 
 q = .016
 nCovSeq = c(2, 4, 6, 8, 10)
-nIter = 1
+nIter = 100
 method = "regLaplacian"
 
 nPoints = length(nCovSeq)
@@ -168,10 +170,12 @@ misClustData = data.frame(nCov = rep(nCovSeq, 4), misClustRate =
     group = rep(1:4, each = nPoints))
 
 #output txt file with results
-write.table(misClustData, file = paste(outDir, "simCompMethodsNumCov.txt"))
+write.table(misClustData, file = paste(outDir, "simCompMethodsNumCov.txt",
+                              sep = ""))
 
 #create figure
-pdf(paste(outDir, "simCompMethodsNumCov.pdf"), width = 7, height = 7)
+pdf(paste(outDir, "simCompMethodsNumCov.pdf", sep = ""),
+    width = 7, height = 7)
 print(
     xyplot(misClustRate ~ nCov, group = group, type = "b", pch = 1:4,
            data = misClustData, ylab = "Average Mis-clustering Rate",
