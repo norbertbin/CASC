@@ -76,7 +76,8 @@ getCascResults = function(graphMat, covariates, hTuningParam,
     return( list(cluster = kmeansResults$cluster,
                  wcss = kmeansResults$tot.withinss,
                  singGap = cascSvd$singVal[nBlocks] -
-                 cascSvd$singVal[nBlocks + 1]) )
+                 cascSvd$singVal[nBlocks + 1],
+                 singVecK = cascSvd$singVec[ ,nBlocks]))
     
 }
 

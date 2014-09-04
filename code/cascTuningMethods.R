@@ -43,33 +43,43 @@ getCascAutoClusters = function(adjacency, covariates, nBlocks,
 getCascAutoSvd = function(graphMat, covariates, nBlocks,
     nPoints = 100) {
 
+    # value for detecting a transition
+    epsilon = .01
+    
     rangehTuning = getTuningRange(graphMat, covariates, nBlocks)
 
     hTuningSeq = seq(rangehTuning$hmin, rangehTuning$hmax,
         length.out = nPoints)
-    wcssVec = rep(0, nPoints)
-    gapVec = rep(0, nPoints)
+    wcssVec = vector(length = nPoints)
+    gapVec = vector(length = nPoints)
+    orthoX = vector(length = nPoints)
+    orthoL = vector(length = nPoints)
     
     for(i in 1:nPoints) {
         cascResults = getCascResults(graphMat, covariates, hTuningSeq[i],
             nBlocks)
+        orthoX[i] = sum((t(cascResults$singVecK)%*%covariates)^2)
+        orthoL[i] = sum((t(cascResults$singVecK)%*%graphMat)^2)
         wcssVec[i] = cascResults$wcss
         gapVec[i] = cascResults$singGap
     }
 
-    # restrict possible values to those past any phase transition
-    if(min(gapVec) < .9*min(gapVec[1], gapVec[nPoints]) &
-       min(gapVec) < .02) {
-        starth = match(min(gapVec), gapVec) + 1
-        print("transition found")
+    # restrict the range of h values
+    startIndex = 1
+    endIndex = nPoints
+    for(i in 1:(nPoints-1)) {
+        if(orthoX[i] < epsilon & orthoX[i+1] > epsilon &
+           orthoL[i+1] > epsilon) {
+            startIndex = i + 1
+        }
+        if(orthoL[i+1] < epsilon & orthoX[i] > epsilon &
+           orthoL[i] > epsilon) {
+            endIndex = i
+        }
     }
-    else {
-        starth = 1
-    }
-        
-    minWcssIndex = match(min(wcssVec[starth:nPoints]),
-        wcssVec[starth:nPoints]) + starth - 1
-print(paste("hTuning = ", hTuningSeq[minWcssIndex]))
+            
+    minWcssIndex = which.min(wcssVec[startIndex:endIndex]) + startIndex - 1
+
     return( getCascSvd(graphMat, covariates, hTuningSeq[minWcssIndex],
                        nBlocks) )
 }
@@ -95,6 +105,5 @@ getTuningRange = function(graphMatrix, covariates, nBlocks) {
 
     hmin = (singValGraph[nBlocks] - singValGraph[nBlocks + 1])/singValCov[1]^2
 
-    print(paste("hmax = ", hmax, " hmin = ", hmin))
     return( list( hmax = hmax, hmin = hmin ) )
 }
