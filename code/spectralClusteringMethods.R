@@ -217,12 +217,12 @@ getGraphMatrix = function(adjacencyMat, method) {
         rSums = rowSums(adjacencyMat)
         tau = mean(rSums)
         normMat = Diagonal(length(rSums), 1/sqrt(rSums + tau))
-        return(normMat %*% adjacencyMat %*% normMat)
+        return(forceSymmetric(normMat %*% adjacencyMat %*% normMat))
     }
     else if(method == "laplacian") {
         rSums = rowSums(adjacencyMat)
         normMat = Diagonal(length(rSums), 1/sqrt(rSums))
-        return(normMat %*% adjacencyMat %*% normMat)
+        return(forceSymmetric(normMat %*% adjacencyMat %*% normMat))
     }
     else if(method == "adjacency"){
         return(adjacencyMat)

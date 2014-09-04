@@ -25,36 +25,19 @@ simAdjMatCovMat = function(blockMat, covProbMat, nMembers) {
     nNodes = sum(nMembers)
     nCovs = dim(covProbMat)[2]
     covariates = matrix(rep(0, nCovs*nNodes), nrow = nNodes)
-    adjacency = matrix(rep(0, nNodes^2), nrow = nNodes)
-    upTriMat = upper.tri(adjacency)
     startBlock = cumsum(c(0, nMembers)) + 1
 
-    #fill the aa and xx matrices block by block
+    #fill covariate matrices block by block
     for(i in 1:nBlocks) {
-	for(j in 1:i) {
-		if(i == j) {
-                    upTriMatTemp = upTriMat
-                    upTriMatTemp[, -(startBlock[i]:(startBlock[i+1] - 1))] = F
-                    upTriMatTemp[-(startBlock[i]:(startBlock[i+1] - 1)),] = F
-                    adjacency[upTriMatTemp] = rbinom(sum(upTriMatTemp), 1,
-                                 blockMat[i,i])
-                }
-		else {
-                    adjacency[startBlock[i]:(startBlock[i+1] - 1),
-                              startBlock[j]:(startBlock[j+1] - 1)] = 
-			rbinom(nMembers[i] * nMembers[j] , 1, blockMat[i,j])
-		}
-	}
-
-        #loop over covariates to sim x
-	for(k in 1:nCovs) {
-		covariates[startBlock[i]:(startBlock[i+1] - 1), k] =
+         #loop over covariates to sim x
+        for(k in 1:nCovs) {
+            covariates[startBlock[i]:(startBlock[i+1] - 1), k] =
                     rbinom(nMembers[i], 1, covProbMat[i,k])
-	}
+        }
     }
 
     #copy upper tri to lower tri for aa
-    return( list(adjacency = adjacency + t(adjacency),
+    return( list(adjacency = simSparseAdjMat(blockMat, nMembers),
                  covariates = covariates) )
 }
 
@@ -152,34 +135,17 @@ simAdjMatCovMatPropInc = function(blockMat, covProbMat, nMembers,
     nNodes = sum(nMembers)
     nCovs = dim(covProbMat)[2]
     covariates = matrix(rep(0, nCovs*nNodes), nrow = nNodes)
-    adjacency = matrix(rep(0, nNodes^2), nrow = nNodes)
-    upTriMat = upper.tri(adjacency)
     startBlock = cumsum(c(0, nMembers)) + 1
 
     #fill the aa and xx matrices block by block
     for(i in 1:nBlocks) {
-	for(j in 1:i) {
-		if(i == j) {
-                    upTriMatTemp = upTriMat
-                    upTriMatTemp[, -(startBlock[i]:(startBlock[i+1] - 1))] = F
-                    upTriMatTemp[-(startBlock[i]:(startBlock[i+1] - 1)),] = F
-                    adjacency[upTriMatTemp] = rbinom(sum(upTriMatTemp), 1,
-                                 blockMat[i,i])
-                }
-		else {
-                    adjacency[startBlock[i]:(startBlock[i+1] - 1),
-                              startBlock[j]:(startBlock[j+1] - 1)] = 
-			rbinom(nMembers[i] * nMembers[j] , 1, blockMat[i,j])
-		}
-	}
-
         #loop over covariates to sim x
-	for(k in 1:nCovs) {
-		covariates[startBlock[i]:(startBlock[i+1] - 1), k] =
+        for(k in 1:nCovs) {
+            covariates[startBlock[i]:(startBlock[i+1] - 1), k] =
                     rbinom(nMembers[i], 1, covProbMat[i,k])
-	}
+        }
     }
-
+    
     #flip the group membership of the given number of prop_inc 
     #reassign to the next group
     nFlips = round( sum(nMembers) * propIncorrect / length(nMembers) )
@@ -193,7 +159,7 @@ simAdjMatCovMatPropInc = function(blockMat, covProbMat, nMembers,
     covariates[startBlock[i+1]:(startBlock[i+1] + nFlips), ] = covariatesTemp
     
     #copy upper tri to lower tri for aa
-    return( list(adjacency = adjacency + t(adjacency),
+    return( list(adjacency = simSparseAdjMat(blockMat, nMembers),
                  covariates = covariates) )
 }
 
