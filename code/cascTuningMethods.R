@@ -44,7 +44,7 @@ getCascAutoSvd = function(graphMat, covariates, nBlocks,
     nPoints = 100) {
 
     # value for detecting a transition
-    epsilon = .01
+    epsilon = .05
     
     rangehTuning = getTuningRange(graphMat, covariates, nBlocks)
 
@@ -58,30 +58,36 @@ getCascAutoSvd = function(graphMat, covariates, nBlocks,
     for(i in 1:nPoints) {
         cascResults = getCascResults(graphMat, covariates, hTuningSeq[i],
             nBlocks)
-        orthoX[i] = sum((t(cascResults$singVecK)%*%covariates)^2)
-        orthoL[i] = sum((t(cascResults$singVecK)%*%graphMat)^2)
+        orthoX[i] = cascResults$orthoX
+        orthoL[i] = cascResults$orthoL
         wcssVec[i] = cascResults$wcss
         gapVec[i] = cascResults$singGap
     }
 
-    # restrict the range of h values
-    startIndex = 1
-    endIndex = nPoints
-    for(i in 1:(nPoints-1)) {
-        if(orthoX[i] < epsilon & orthoX[i+1] > epsilon &
-           orthoL[i+1] > epsilon) {
-            startIndex = i + 1
-        }
-        if(orthoL[i+1] < epsilon & orthoX[i] > epsilon &
-           orthoL[i] > epsilon) {
-            endIndex = i
-        }
-    }
-            
-    minWcssIndex = which.min(wcssVec[startIndex:endIndex]) + startIndex - 1
+    # restrict the range of h values using orthogonal components
+    subspaces = getSubspaces(orthoX, orthoL, nPoints, epsilon)
+    
+    subintervalLengths = subspaces$subintervalEnd - subspaces$subintervalStart
+    minCountSubspaces = which(subspaces$orthoCounts ==
+        min(subspaces$orthoCounts))
 
-    return( getCascSvd(graphMat, covariates, hTuningSeq[minWcssIndex],
-                       nBlocks) )
+# min WCSS on most overlapping set of subspaces
+    startIndex = subspaces$subintervalStart[minCountSubspaces]
+    endIndex = subspaces$subintervalEnd[minCountSubspaces]
+    minInterval = unlist(apply(cbind(startIndex, endIndex), 1, function(x)
+        {x[1]:x[2]}))
+    minWcssSubindex = which.min(wcssVec[minInterval])
+    hOpt = (hTuningSeq[minInterval])[minWcssSubindex]
+    
+#    keep longest subspace if there is a tie
+#    minCountLengths = subintervalLengths[minCountSubspaces]
+#    maxMinSubspace = minCountSubspaces[which.max(minCountLengths)]
+#    startIndex = subspaces$subintervalStart[maxMinSubspace]
+#    endIndex = subspaces$subintervalEnd[maxMinSubspace]
+#    minWcssIndex = which.min(wcssVec[startIndex:endIndex]) + startIndex - 1
+#    hOpt = hTuningSeq[minWcssIndex]                        
+        
+    return( getCascSvd(graphMat, covariates, hOpt, nBlocks) )
 }
 
 # ---------------------------------------------------------------------
@@ -106,4 +112,37 @@ getTuningRange = function(graphMatrix, covariates, nBlocks) {
     hmin = (singValGraph[nBlocks] - singValGraph[nBlocks + 1])/singValCov[1]^2
 
     return( list( hmax = hmax, hmin = hmin ) )
+}
+
+# ---------------------------------------------------------------------
+# Finds leading subspace discontinuities.
+# Returns the start and end of a continuous interval and
+# the number of orthogonal components in the leading subspace
+# on the interval.
+# ---------------------------------------------------------------------
+getSubspaces = function(orthoX, orthoL, nPoints, epsilon) {
+
+    indicatorOut = vector(length = nPoints)
+    indicatorIn = vector(length = nPoints)
+    
+    for(i in 1:(nPoints - 1)) {
+        if((orthoX[i] < epsilon) & (orthoX[i+1])) {
+            indicatorOut[i+1] = 1
+        }
+        else if((orthoL[i+1] < epsilon) & (orthoL[i] > epsilon)) {
+            indicatorIn[i+1] = 1
+        }
+    }
+
+    orthoCounts = cumsum(indicatorIn) - cumsum(indicatorOut) +
+        max(cumsum(indicatorOut))
+    subintervalStart = unique(c(which(indicatorIn == 1),
+        which(indicatorOut == 1)))
+    subintervalEnd = sort(c(subintervalStart-1, nPoints))
+    subintervalStart = sort(c(1, subintervalStart))
+    orthoCounts = orthoCounts[subintervalStart]
+
+    return( list(orthoCounts = orthoCounts,
+                 subintervalStart = subintervalStart,
+                 subintervalEnd = subintervalEnd) )
 }

@@ -69,16 +69,18 @@ getCascResults = function(graphMat, covariates, hTuningParam,
     randStarts = 10 #number of random starts for kmeans
     
     cascSvd = getCascSvd(graphMat, covariates, hTuningParam, nBlocks)
-    cascSingVec = cascSvd$singVec
+
+    ortho = getOrtho(graphMat, covariates, cascSvd$singVec, cascSvd$singVal,
+        hTuningParam, nBlocks)
     
-    kmeansResults = kmeans(cascSingVec, nBlocks, nstart = randStarts)
+    kmeansResults = kmeans(cascSvd$singVec, nBlocks, nstart = randStarts)
     
     return( list(cluster = kmeansResults$cluster,
                  wcss = kmeansResults$tot.withinss,
                  singGap = cascSvd$singVal[nBlocks] -
                  cascSvd$singVal[nBlocks + 1],
-                 singVecK = cascSvd$singVec[ ,nBlocks]))
-    
+                 orthoL = ortho$orthoL,
+                 orthoX = ortho$orthoX) )    
 }
 
 # ---------------------------------------------------------------------
@@ -208,6 +210,20 @@ getCovScSvd = function(covMat, nBlocks) {
                  singVal = singDecomp$d) ) 
 }
 
+# ---------------------------------------------------------------------
+# returns the proportion of the eigenvalues due to X in the top eigenspace
+# ---------------------------------------------------------------------
+getOrtho <- function(graphMat, covariates, cascSvdSingVec, cascSvdSingVal,
+                     h, nBlocks) {
+    orthoL <- as.numeric((t(cascSvdSingVec[, nBlocks])%*%graphMat%*%
+           cascSvdSingVec[, nBlocks])/cascSvdSingVal[nBlocks])
+    orthoX <- as.numeric(h*(t(cascSvdSingVec[, nBlocks])%*%covariates%*%
+                          t(covariates)%*%cascSvdSingVec[, nBlocks])/
+                       cascSvdSingVal[nBlocks])
+    return( list(orthoL = orthoL/(orthoL + orthoX),
+                 orthoX = orthoX/(orthoL + orthoX)) )
+}
+    
 # ---------------------------------------------------------------------
 # returns the graph matrix corresponding to the given method
 # ---------------------------------------------------------------------
