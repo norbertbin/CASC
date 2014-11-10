@@ -19,13 +19,22 @@ if (!require(lattice)) {
     require(lattice)
 }
 
-outDir = "Figs/"
+
 
 # ---------------------------------------------------------------------
 # simulations to compare CCA, CASC, SC on graph only
 # versus changes in proportion of correct group membership
 # ---------------------------------------------------------------------
-#model parameters
+# tuning procedure
+enhancedTuning = F
+
+# center and scale X
+centerAndScale = T
+
+outDir = paste("Figs/", "enhanced", enhancedTuning, "centered",
+    centerAndScale, "/", sep="")
+
+# model parameters
 nBlocks = 2
 nMembers = rep(500, nBlocks)
 nCovs = 2
@@ -54,6 +63,15 @@ for(iter in 1:nIter) {
         simData = simAdjMatCovMatPropInc(blockProbMat, covProbMat,
             nMembers, propIncorrect)
 
+        if(centerAndScale == T) {
+            simData$covariates = scale(simData$covariates, center = T,
+                           scale = sqrt(colSums(simData$covariates^2)))
+            # add a constant column
+            nNodes = sum(nMembers)
+            const = rep(1/sqrt(nNodes), nNodes)            
+            simData$covariates = cBind(simData$covariates, const)
+        }
+        
         #convert adjacency matrix to sparse matrix
         graphMat = getGraphMatrix( Matrix(simData$adjacency, sparse = T),
             method)
@@ -62,7 +80,7 @@ for(iter in 1:nIter) {
         index = index + 1
         misClustRateCasc[index] = misClustRateCasc[index] +
             misClustRateEmp(getCascAutoSvd(graphMat, simData$covariates,
-                                           nBlocks)$singVec, nMembers)
+               nBlocks, enhancedTuning = enhancedTuning)$singVec, nMembers)
         misClustRateCca[index] = misClustRateCca[index] +
             misClustRateEmp(getCcaSvd(graphMat, simData$covariates,
                                       nBlocks)$singVec, nMembers)

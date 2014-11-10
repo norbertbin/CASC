@@ -19,12 +19,21 @@ if (!require(lattice)) {
     require(lattice)
 }
 
-outDir = "Figs/"
+
 
 # ---------------------------------------------------------------------
 # comparison of misclustering using CASC, CCA, L, X versus n for
 # increasing density
 # ---------------------------------------------------------------------
+# tuning procedure
+enhancedTuning = F
+
+# center and scale X
+centerAndScale = T
+
+outDir = paste("Figs/", "enhanced", enhancedTuning, "centered",
+    centerAndScale, "/", sep="")
+
 #model parameters
 nBlocks = 2
 nCovs = 2
@@ -33,7 +42,7 @@ covProb2 = .1
 p = .03
 q = .021
 nNodesSeq = 500*c(1, 2, 4, 6, 8, 10)
-nIter = 20
+nIter = 100
 method = "regLaplacian"
 
 nPoints = length(nNodesSeq)
@@ -54,6 +63,15 @@ for(iter in 1:nIter) {
         blockProbMat = genBlockMatPPM(p, q, nBlocks)
         simData = simAdjMatCovMat(blockProbMat, covProbMat, nMembers)
 
+        if(centerAndScale == T) {
+            simData$covariates = scale(simData$covariates, center = T,
+                           scale = sqrt(colSums(simData$covariates^2)))
+            # add a constant column
+            nNodes = sum(nMembers)
+            const = rep(1/sqrt(nNodes), nNodes)            
+            simData$covariates = cBind(simData$covariates, const)
+        }
+        
         #convert adjacency matrix to sparse matrix
         graphMat = getGraphMatrix( Matrix(simData$adjacency, sparse = T),
             method)
@@ -62,7 +80,7 @@ for(iter in 1:nIter) {
         index = index + 1
         misClustRateCasc[index] = misClustRateCasc[index] +
             misClustRateEmp(getCascAutoSvd(graphMat, simData$covariates,
-                                           nBlocks)$singVec, nMembers)
+               nBlocks, enhancedTuning = enhancedTuning)$singVec, nMembers)
         misClustRateCca[index] = misClustRateCca[index] +
             misClustRateEmp(getCcaSvd(graphMat, simData$covariates,
                                       nBlocks)$singVec, nMembers)

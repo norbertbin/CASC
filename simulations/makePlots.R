@@ -34,82 +34,141 @@ datMember = read.table(paste(outDir, "simDiffGroupMember.txt", sep=""),
 #    "Regularized Spectral Clustering",
 #    "Spectral Clustering on X")
 
-legLab = c("CASC", "CCA", "RSC", "SC on X")
+legLab = c("CASC", "CCA", "RSC", "SC-X")
 
 #plot for datPQ
 pdf(paste(outDir, "simCompMethodsPQ.pdf", sep=""), width = 7, height = 7)
 print(
-xyplot(misClustRate ~ deltaPQ, group = group, type = "b", pch = 1:4,
-           cex = 1.2, data = datPQ, ylab = "Average mis-clustering rate",
-           xlab = "Difference in within and between block probabilities (p - q)", main="(a)", lwd = 2, key = list(
-                               text = list(legLab),
-                               lines = list(col = 
-			trellis.par.get()$superpose.symbol$col[1:4], lwd = 2),
-                               points = list(pch = 1:4, cex = 1.2,
-			col = trellis.par.get()$superpose.symbol$col[1:4]),
-                                        corner = c(.95, .95)) )
+xyplot(misClustRate ~ deltaPQ,
+       group = group,
+       type = "b",
+       pch = 1:4,
+       cex = 1.2,
+       data = datPQ,
+       ylab = list( label = "Average mis-clustering rate",
+                    cex = 1.7),
+       xlab = list( label = "Within minus between block probability (p - q)",
+                    cex = 1.7),
+       main = list("(a)", cex=1.7),
+       lwd = 2,
+       key = list( text = list(legLab,
+                               cex = 1.5),
+                   lines = list( col = trellis.par.get()$superpose.symbol$col[1:4],
+                                 lwd = 2),
+                    points = list( pch = 1:4,
+                                   cex = 1.2,
+                                   col = trellis.par.get()$superpose.symbol$col[1:4]),
+                                   corner = c(.95, .95)),
+       scales = list( cex = 1.5))
 )
 dev.off()
 
 #plot for datDense
 pdf(paste(outDir, "simCompMethodsDense.pdf", sep=""), width = 7, height = 7)
 print(
-    xyplot(misClustRate ~ nNodes, group = group, type = "b", pch = 1:4,
-           cex = 1.2, data = datDense, ylab = "Average mis-clustering rate",
-           xlab = "Number of nodes (N)", main="(b)", lwd = 2, key = list(
-                               text = list(legLab),
-                               lines = list(col = 
-			trellis.par.get()$superpose.symbol$col[1:4], lwd = 2),
-                               points = list(pch = 1:4, cex = 1.2,
-			col = trellis.par.get()$superpose.symbol$col[1:4]),
-                                        corner = c(.95, .95)) )
+    xyplot(misClustRate ~ nNodes,
+           group = group,
+           type = "b",
+           pch = 1:4,
+           cex = 1.2,
+           data = datDense,
+           ylab = list( label = "Average mis-clustering rate",
+                        cex = 1.7),
+           xlab = list( label = "Number of nodes (N)",
+                        cex = 1.7),
+           main = list( label = "(b)",
+                        cex = 1.7),
+           lwd = 2,
+           key = list( text = list(legLab,
+                                   cex = 1.5),
+                       lines = list( col = trellis.par.get()$superpose.symbol$col[1:4],
+                                     lwd = 2),
+                       points = list( pch = 1:4,
+                                      cex = 1.2,
+                                      col = trellis.par.get()$superpose.symbol$col[1:4]),
+                       corner = c(.95, .95)),
+           scales = list( cex=1.5))
     )
 dev.off()
 
 #plot for datCovProb
 pdf(paste(outDir, "simCompMethodsCovProb.pdf", sep=""), width = 7, height = 7)
 print(
-    xyplot(misClustRate ~ deltaCovProb, group = group, type = "b", pch = 1:4,
-           cex = 1.2, data = datCovProb, ylab = "Average mis-clustering rate",
-           xlab = expression(
-               'Difference in covariate probabilities (m'[1]*' - m'[2]*')'),
-           main="(a)", lwd = 2, key = list(
-                               text = list(legLab),
-                               lines = list(col = 
-			trellis.par.get()$superpose.symbol$col[1:4], lwd = 2),
-                               points = list(pch = 1:4, cex = 1.2,
-			col = trellis.par.get()$superpose.symbol$col[1:4]),
-                                        corner = c(.95, .95)) )
+    xyplot(misClustRate ~ deltaCovProb,
+           group = group,
+           type = "b",
+           pch = 1:4,
+           cex = 1.2,
+           data = datCovProb,
+           ylab = list( label = "Average mis-clustering rate",
+                        cex = 1.7),
+           xlab = list( label = expression('Difference in covariate probabilities (m'[1]*' - m'[2]*')'),
+                         cex = 1.7),
+           main = list( label = "(a)",
+                        cex = 1.7),
+           lwd = 2,
+           key = list( text = list(legLab,
+                                   cex = 1.5),
+                       lines = list( col = trellis.par.get()$superpose.symbol$col[1:4],
+                                     lwd = 2),
+                       points = list( pch = 1:4,
+                                      cex = 1.2,
+			                          col = trellis.par.get()$superpose.symbol$col[1:4]),
+                       corner = c(.95, .95)),
+           scale = list(cex=1.5))
     )
 dev.off()
 
 #plot for datNumCov
 pdf(paste(outDir, "simCompMethodsNumCov.pdf", sep=""), width = 7, height = 7)
 print(
-    xyplot(misClustRate ~ nCov, group = group, type = "b", pch = 1:4,
-           cex = 1.2, data = datNumCov, ylab = "Average mis-clustering rate",
-           xlab = "Number of Covariates (R)", main="(b)", lwd = 2, key = list(
-                               text = list(legLab),
-                               lines = list(col = 
-			trellis.par.get()$superpose.symbol$col[1:4], lwd = 2),
-                               points = list(pch = 1:4, cex = 1.2,
-			col = trellis.par.get()$superpose.symbol$col[1:4]),
-                                        corner = c(.95, .95)) )
+    xyplot(misClustRate ~ nCov,
+           group = group,
+           type = "b",
+           pch = 1:4,
+           cex = 1.2,
+           data = datNumCov,
+           ylab = list( label = "Average mis-clustering rate",
+                        cex = 1.7),
+           xlab = list( label = "Number of Covariates (R)",
+                        cex = 1.7),
+           main = list( label = "(b)",
+                        cex = 1.7),
+           lwd = 2,
+           key = list( text = list(legLab,
+                                   cex = 1.5),
+                       lines = list(col = trellis.par.get()$superpose.symbol$col[1:4],
+                                    lwd = 2),
+                       points = list(pch = 1:4,
+                                     cex = 1.2,
+			                         col = trellis.par.get()$superpose.symbol$col[1:4]),
+                       corner = c(.95, .95)),
+           scales = list(cex=1.5))
     )
 dev.off()
 
 #plot for datMember
 pdf(paste(outDir, "simDiffGroupMember.pdf", sep=""), width = 7, height = 7)
 print(
-    xyplot(misClustRate ~ propIncorrect, group = group, type = "b", pch = 1:4,
-           cex = 1.2, data = datMember, ylab = "Average mis-clustering rate",
-           xlab = "Proportion of covariate to graph block membership agreement"
-           , lwd = 2, key = list(
-                               text = list(legLab),
-                               lines = list(col = 
-			trellis.par.get()$superpose.symbol$col[1:4], lwd = 2),
-                               points = list(pch = 1:4, cex = 1.2,
-			col = trellis.par.get()$superpose.symbol$col[1:4]),
-                                        corner = c(.95, .95)) )
+    xyplot(misClustRate ~ propIncorrect,
+           group = group,
+           type = "b",
+           pch = 1:4,
+           cex = 1.2,
+           data = datMember,
+           ylab = list( label = "Average mis-clustering rate",
+                        cex = 1.7),
+           xlab = list( label="Covariate to graph block membership agreement",
+                        cex = 1.7),
+           lwd = 2,
+           key = list( text = list(legLab,
+                                   cex = 1.5),
+                       lines = list(col = trellis.par.get()$superpose.symbol$col[1:4],
+                                    lwd = 2),
+                       points = list(pch = 1:4,
+                                     cex = 1.2,
+			                         col = trellis.par.get()$superpose.symbol$col[1:4]),
+                       corner = c(.95, .95)),
+           scales = list(cex=1.5))
     )
 dev.off()
