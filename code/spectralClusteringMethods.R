@@ -80,7 +80,9 @@ getCascResults = function(graphMat, covariates, hTuningParam,
                  singGap = cascSvd$singVal[nBlocks] -
                  cascSvd$singVal[nBlocks + 1],
                  orthoL = ortho$orthoL,
-                 orthoX = ortho$orthoX) )    
+                 orthoX = ortho$orthoX,
+                 singVecK = cascSvd$singVec[, nBlocks],
+                 singVecKPlus = cascSvd$singVecKPlus) )    
 }
 
 # ---------------------------------------------------------------------
@@ -177,7 +179,8 @@ getCascSvd = function(graphMat, covariates, hTuningParam, nBlocks) {
         m_b = internalDim, matmul = matrixMulti)
 
     return( list(singVec = singDecomp$u[, 1:nBlocks],
-                 singVal = singDecomp$d) ) 
+                 singVal = singDecomp$d,
+                 singVecKPlus = singDecomp$u[, nBlocks+1]) ) 
 }
 
 # ---------------------------------------------------------------------

@@ -27,7 +27,7 @@ getCascAutoClusters = function(adjacency, covariates, nBlocks,
 
     for(i in 1:nPoints) {
         cascResults = getCascResults(graphMat, covariates, hTuningSeq[i],
-            nBlocks)
+            nBlocks, enhancedTuning)
         wcssVec[i] = cascResults$wcss
         clusterMat[i, ] = cascResults$cluster
     }
@@ -41,7 +41,7 @@ getCascAutoClusters = function(adjacency, covariates, nBlocks,
 # returns CASC optimal h tuning parameter SVD
 # ---------------------------------------------------------------------
 getCascAutoSvd = function(graphMat, covariates, nBlocks,
-    nPoints = 100) {
+    nPoints = 100, enhancedTuning = T) {
 
     # value for detecting a transition
     epsilon = .05
@@ -64,29 +64,43 @@ getCascAutoSvd = function(graphMat, covariates, nBlocks,
         gapVec[i] = cascResults$singGap
     }
 
-    # restrict the range of h values using orthogonal components
+# get transition points of static eigenvectors
     subspaces = getSubspaces(orthoX, orthoL, nPoints, epsilon)
-    
-    subintervalLengths = subspaces$subintervalEnd - subspaces$subintervalStart
-    minCountSubspaces = which(subspaces$orthoCounts ==
-        min(subspaces$orthoCounts))
+    nSubspaces = length(subspaces$subintervalStart)    
 
-# min WCSS on most overlapping set of subspaces
-    startIndex = subspaces$subintervalStart[minCountSubspaces]
-    endIndex = subspaces$subintervalEnd[minCountSubspaces]
-    minInterval = unlist(apply(cbind(startIndex, endIndex), 1, function(x)
-        {x[1]:x[2]}))
-    minWcssSubindex = which.min(wcssVec[minInterval])
-    hOpt = (hTuningSeq[minInterval])[minWcssSubindex]
-    
-#    keep longest subspace if there is a tie
-#    minCountLengths = subintervalLengths[minCountSubspaces]
-#    maxMinSubspace = minCountSubspaces[which.max(minCountLengths)]
-#    startIndex = subspaces$subintervalStart[maxMinSubspace]
-#    endIndex = subspaces$subintervalEnd[maxMinSubspace]
-#    minWcssIndex = which.min(wcssVec[startIndex:endIndex]) + startIndex - 1
-#    hOpt = hTuningSeq[minWcssIndex]                        
+    if((enhancedTuning == T) & (nSubspaces > 1)) {
+
+        subMinIndex = vector(length = nSubspaces)
+        subMaxIndex = vector(length = nSubspaces)
+        for(i in 1:nSubspaces) {
+             subMinIndex[i] = which.min(wcssVec[
+                            subspaces$subintervalStart[i]:
+                                subspaces$subintervalEnd[i]]) +
+                                    subspaces$subintervalStart[i] - 1
+            subMaxIndex[i] = which.max(wcssVec[
+                           subspaces$subintervalStart[i]:
+                               subspaces$subintervalEnd[i]]) +
+                                   subspaces$subintervalStart[i] - 1
+        }
+
+        # keep only those intervals that are not dominated in terms of wcss
+         includeVec = (rowSums(outer(wcssVec[subMinIndex], wcssVec[subMaxIndex],
+                       function(x, y) {x > y})) == 0)
         
+        minCountSubspaces = ((1:nSubspaces)[includeVec == 1])[
+                             which.min(subspaces$orthoCounts[includeVec == 1])]
+
+        # min WCSS on most overlapping set of subspaces
+        startIndex = subspaces$subintervalStart[minCountSubspaces]
+        endIndex = subspaces$subintervalEnd[minCountSubspaces]
+        minInterval = unlist(apply(cbind(startIndex, endIndex), 1, function(x)
+            {x[1]:x[2]}))
+        minWcssSubindex = which.min(wcssVec[minInterval])
+        hOpt = (hTuningSeq[minInterval])[minWcssSubindex]
+    } else {
+        hOpt = hTuningSeq[which.min(wcssVec)]
+    }
+    
     return( getCascSvd(graphMat, covariates, hOpt, nBlocks) )
 }
 
@@ -126,7 +140,7 @@ getSubspaces = function(orthoX, orthoL, nPoints, epsilon) {
     indicatorIn = vector(length = nPoints)
     
     for(i in 1:(nPoints - 1)) {
-        if((orthoX[i] < epsilon) & (orthoX[i+1])) {
+        if((orthoX[i] < epsilon) & (orthoX[i+1] > epsilon)) {
             indicatorOut[i+1] = 1
         }
         else if((orthoL[i+1] < epsilon) & (orthoL[i] > epsilon)) {
