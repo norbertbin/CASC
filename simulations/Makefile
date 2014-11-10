@@ -1,12 +1,18 @@
 # make file to run simulation code
 
-all: simCompMethodsGraph simCompMethodsCov simDiffGroupMember
+all: simCompMethodsGraphDelta simCompMethodsGraphN simCompMethodsCovDelta simCompMethodsCovN simDiffGroupMember
 
-simCompMethodsGraph: simCompMethodsGraph.R
-	R CMD BATCH simCompMethodsGraph.R simCompMethodsGraph.Rout
+simCompMethodsGraphDelta: simCompMethodsGraphDelta.R
+	R CMD BATCH simCompMethodsGraphDelta.R simCompMethodsGraphDelta.Rout
 
-simCompMethodsCov: simCompMethodsCov.R
-	R CMD BATCH simCompMethodsCov.R simCompMethodsCov.Rout
+simCompMethodsGraphN: simCompMethodsGraphN.R
+	R CMD BATCH simCompMethodsGraphN.R simCompMethodsGraphN.Rout
+
+simCompMethodsCovDelta: simCompMethodsCovDelta.R
+	R CMD BATCH simCompMethodsCovDelta.R simCompMethodsCovDelta.Rout
+
+simCompMethodsCovN: simCompMethodsCovN.R
+	R CMD BATCH simCompMethodsCovN.R simCompMethodsCovN.Rout
 
 simDiffGroupMember: simDiffGroupMember.R
 	R CMD BATCH simDiffGroupMember.R simDiffGroupMember.Rout
