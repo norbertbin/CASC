@@ -23,15 +23,6 @@ source("irlbaMod.R")
 # ---------------------------------------------------------------------
 
 # ---------------------------------------------------------------------
-# returns cluster memberships for gen. inv. laplacian based clustering
-# ---------------------------------------------------------------------
-getGilClusters = function(adjacencyMat, covariates, nBlocks,
-    method = 'regLaplacina') {
-
-    
-}
-
-# ---------------------------------------------------------------------
 # returns cluster memberships for CCA based clustering
 # ---------------------------------------------------------------------
 getCcaClusters = function(adjacencyMat, covariates, nBlocks,
