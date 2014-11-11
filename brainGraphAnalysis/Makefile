@@ -9,10 +9,10 @@ procDataDir = ../procData/
 atlasFile = ../../brainData/desikan/desikan_atlas_remap.nii
 
 #for a single graph
-filePre = NKI-TRT_0021001
+filePre = KKI-21_KKI2009-12
 
 #for running multiple graphs
-fileList = ../../brainData/KKI-42_MIGRAINE/preFixes_KKI-42-1.txt
+fileList = ../../brainData/KKI-42_MIGRAINE/preFixes_KKI-42.txt
 
 
 #run python script to preprocess data
@@ -42,6 +42,12 @@ args4 = $(filePre) $(nCores) $(nH)
 simAtlasBlocks: simAtlasBlocks.R
 	R CMD BATCH '--args $(args4)' simAtlasBlocks.R
 
+args5 = $(rawDataDir) $(procDataDir) $(filePre) $(nBlocks) \
+	$(nCores) $(nH)
+clusterBrainGraphWithAtlas: clusterBrainGraphWithAtlas.R \
+		../code/readWriteMatrix.R ../code/irlbaMod.R \
+		../code/spectralClusteringMethods.R
+	R CMD BATCH '--args $(args5)' clusterBrainGraphWithAtlas.R
 ##########################################
 # run R scripts on a set of input graphs
 aFilePre = $(shell cat $(fileList))
@@ -66,3 +72,7 @@ clusterPlotsAll:
 #run R script to compare paired clusters
 compareBrainClusters:
 	R CMD BATCH '--args $(fileList) $(procDataDir)' compareBrainClusters.R
+
+#run R script to plot node degree histograms
+plotDegreeDist:
+	R CMD BATCH '--args $(rawDataDir) $(procDataDir) $(fileList) $(nCores)' plotDegreeDist.R

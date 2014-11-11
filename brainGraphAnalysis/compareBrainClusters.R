@@ -56,6 +56,7 @@ scCluster = list()
 scxCluster = list()
 ccaCluster = list()
 cascCluster = list()
+baCluster = list()
 
 nGraphs = length(preVec)
 
@@ -68,6 +69,8 @@ for(i in 1:nGraphs) {
                  sep=""), 1))
     cascCluster[[i]] = as.vector(loadMatrix(paste(outDir, preVec[i], "_CASC",
                  sep=""), 1))
+    baCluster[[i]] = read.table(paste(outDir, preVec[i],
+                 "_big_graph_w_inv_attr.txt", sep=""))$x
 }
 
 # ---------------------------------------------------------------------
@@ -77,6 +80,7 @@ scAri = matrix(0, nrow = nGraphs, ncol = nGraphs)
 scxAri = matrix(0, nrow = nGraphs, ncol = nGraphs)
 ccaAri = matrix(0, nrow = nGraphs, ncol = nGraphs)
 cascAri = matrix(0, nrow = nGraphs, ncol = nGraphs)
+baAri = matrix(0, nrow = nGraphs, ncol = nGraphs)
 
 for(i in 1:(nGraphs-1)) {
     for(j in (i+1):nGraphs) {
@@ -102,17 +106,20 @@ for(i in 1:(nGraphs-1)) {
                  ccaCluster[[j]], matchInd)
         cascAri[i,j] = ariAligned(cascCluster[[i]],
                  cascCluster[[j]], matchInd)
+        baAri[i,j] = ariAligned(baCluster[[i]],
+                 baCluster[[j]], matchInd)
     }
 }
 
 # write ari matricies
 saveMatrixList(paste(outDir, "compareBrainClusters", sep=""),
-               list(cascAri, ccaAri, scAri, scxAri))
+               list(cascAri, ccaAri, scAri, scxAri, baAri))
 } else {
 	cascAri = loadMatrix(paste(outDir, "compareBrainClusters", sep=""), 1)
 	ccaAri = loadMatrix(paste(outDir, "compareBrainClusters", sep=""), 2)
 	scAri = loadMatrix(paste(outDir, "compareBrainClusters", sep=""), 3)
 	scxAri = loadMatrix(paste(outDir, "compareBrainClusters", sep=""), 4)
+    baAri = loadMatrix(paste(outDir, "compareBrainClusters", sep=""), 5)
 }
 
 ordLabels = c(1, 25, 2, 37, 3, 22, 4, 11, 5, 31, 6, 20, 7, 34, 8, 29, 9, 42, 10, 21, 12, 19, 13, 24, 14, 17, 15, 26, 16, 35, 18, 38, 23, 27, 28, 40, 30, 33, 32, 36, 39, 41)
